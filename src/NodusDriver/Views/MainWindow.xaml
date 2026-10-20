@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:NodusDriver.ViewModels"
         Title="NODUS Driver"
-        Width="980" Height="700"
-        MinWidth="820" MinHeight="600"
+        Width="1000" Height="710"
+        MinWidth="840" MinHeight="610"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
@@ -17,46 +17,39 @@
     <Border BorderBrush="{StaticResource BorderStrong}" BorderThickness="1" Background="{StaticResource AppBackground}">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="52"/>
+                <RowDefinition Height="58"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Custom title bar -->
+            <!-- D2 branded title bar -->
             <Border Grid.Row="0"
-                    Background="#0A0D10"
+                    Background="#071012"
                     BorderBrush="{StaticResource Border}"
                     BorderThickness="0,0,0,1"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid Margin="18,0,8,0">
+                <Grid Margin="20,0,8,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="28" Height="28" CornerRadius="8"
-                                Background="{StaticResource AccentSoft}"
-                                BorderBrush="{StaticResource AccentBorder}"
-                                BorderThickness="1"
-                                Margin="0,0,10,0">
-                            <TextBlock Text="N" Foreground="{StaticResource Accent}"
-                                       FontWeight="Bold" FontSize="13"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="NODUS" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                        <TextBlock Text=" Driver" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
+                        <Image Source="{StaticResource NodusMarkDrawing}" Width="31" Height="25" Stretch="Uniform" Margin="0,0,11,0"/>
+                        <TextBlock Text="NODUS" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Driver" FontSize="14" FontWeight="Normal" VerticalAlignment="Center"
                                    Foreground="{StaticResource TextSecondary}"/>
-                        <Border Background="{StaticResource SurfaceRaised}" CornerRadius="5" Margin="10,0,0,0" Padding="6,3">
+                        <Border Background="#0E191C" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                                CornerRadius="4" Margin="11,0,0,0" Padding="6,3">
                             <TextBlock Text="PREVIEW" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="SemiBold"/>
                         </Border>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Style="{StaticResource GhostButton}" Width="42" Height="36" Padding="0"
+                        <Button Style="{StaticResource GhostButton}" Width="42" Height="38" Padding="0"
                                 Click="Minimize_Click" ToolTip="Minimize">
                             <TextBlock Text="—" FontSize="14"/>
                         </Button>
-                        <Button Style="{StaticResource GhostButton}" Width="42" Height="36" Padding="0"
+                        <Button Style="{StaticResource GhostButton}" Width="42" Height="38" Padding="0"
                                 Click="Close_Click" ToolTip="Close">
                             <TextBlock Text="×" FontSize="15"/>
                         </Button>
@@ -64,8 +57,7 @@
                 </Grid>
             </Border>
 
-            <!-- Main content -->
-            <Grid Grid.Row="1" Margin="42,32,42,28">
+            <Grid Grid.Row="1" Margin="44,34,44,28">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -74,7 +66,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header -->
+                <!-- Product header -->
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -82,16 +74,19 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel>
-                        <TextBlock Text="DRIVER UPDATES" Foreground="{StaticResource Accent}"
-                                   FontSize="9" FontWeight="Bold"/>
-                        <TextBlock Text="Keep this PC current" FontSize="30" FontWeight="SemiBold" Margin="0,7,0,0"/>
-                        <TextBlock Text="NODUS checks Microsoft Windows Update and only shows driver packages that match this hardware."
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="24" Height="2" Background="{StaticResource Accent}" VerticalAlignment="Center" Margin="0,0,9,0"/>
+                            <TextBlock Text="THIS PC" Foreground="{StaticResource Accent}"
+                                       FontSize="9" FontWeight="Bold" CharacterSpacing="120"/>
+                        </StackPanel>
+                        <TextBlock Text="Drivers for this PC" FontSize="30" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                        <TextBlock Text="Compatible packages reported by Microsoft Windows Update. No third-party driver catalog."
                                    Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,7,0,0"/>
                     </StackPanel>
 
                     <Button Grid.Column="1" Style="{StaticResource GhostButton}"
                             Command="{Binding ScanCommand}"
-                            VerticalAlignment="Top" Padding="12,9" ToolTip="Scan again">
+                            VerticalAlignment="Top" Margin="0,4,0,0" Padding="12,8" ToolTip="Scan again">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="↻" FontSize="14" Margin="0,0,7,0"/>
                             <TextBlock Text="Scan again" FontSize="11" FontWeight="SemiBold"/>
@@ -99,13 +94,14 @@
                     </Button>
                 </Grid>
 
-                <!-- System summary -->
+                <!-- Scan/status panel -->
                 <Border Grid.Row="1"
                         Background="{StaticResource Surface}"
                         BorderBrush="{StaticResource Border}"
                         BorderThickness="1"
-                        CornerRadius="14"
-                        Margin="0,25,0,24">
+                        CornerRadius="10"
+                        Margin="0,26,0,24"
+                        Padding="0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="4"/>
@@ -114,25 +110,24 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Background="{StaticResource Accent}" CornerRadius="14,0,0,14"/>
+                        <Border Grid.Column="0" Background="{StaticResource Accent}" CornerRadius="10,0,0,10"/>
 
-                        <Border Grid.Column="1" Width="48" Height="48" CornerRadius="13"
-                                Background="{StaticResource AccentSoft}"
-                                BorderBrush="{StaticResource AccentBorder}" BorderThickness="1"
-                                Margin="20,18,16,18">
-                            <TextBlock Text="✓" Foreground="{StaticResource Accent}" FontSize="21" FontWeight="SemiBold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid Grid.Column="1" Width="46" Height="46" Margin="20,18,16,18">
+                            <Ellipse Fill="{StaticResource AccentSoft}" Stroke="{StaticResource AccentBorder}" StrokeThickness="1"/>
+                            <Path Data="M 12 23 L 19 30 L 34 14"
+                                  Stroke="{StaticResource Accent}" StrokeThickness="2.2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Grid>
 
                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,15,24,15">
                             <TextBlock Text="{Binding Status}" FontSize="16" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding StatusDetail}"
                                        Foreground="{StaticResource TextSecondary}"
                                        FontSize="10.5" Margin="0,5,0,0"
-                                       TextWrapping="Wrap" MaxWidth="590"/>
+                                       TextWrapping="Wrap" MaxWidth="580"/>
                         </StackPanel>
 
-                        <Grid Grid.Column="3" Margin="0,16,20,16" VerticalAlignment="Center">
+                        <Grid Grid.Column="3" Margin="0,16,22,16" VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="1"/>
@@ -140,7 +135,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Margin="0,0,22,0">
-                                <TextBlock Text="INSTALLED" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
+                                <TextBlock Text="DETECTED" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
                                 <TextBlock Text="{Binding InstalledDriverCount}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
                                 <TextBlock Text="drivers" Foreground="{StaticResource TextSecondary}" FontSize="9" Margin="0,1,0,0"/>
                             </StackPanel>
@@ -163,31 +158,33 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Available drivers" FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Text="  ·  " Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                        <TextBlock Text="Available packages" FontSize="13" FontWeight="SemiBold"/>
+                        <TextBlock Text="  /  " Foreground="{StaticResource TextMuted}" FontSize="11"/>
                         <TextBlock Text="{Binding PackageCountText}" Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Grid.Column="1" Text="Select what you want to install"
+                    <TextBlock Grid.Column="1" Text="Select packages to install"
                                Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- Driver list -->
+                <!-- Driver package list -->
                 <Grid Grid.Row="3">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding Updates}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{StaticResource Surface}"
-                                            BorderBrush="{StaticResource Border}"
-                                            BorderThickness="1"
-                                            CornerRadius="12"
+                                    <Border BorderThickness="1"
+                                            CornerRadius="8"
                                             Padding="17,14"
-                                            Margin="0,0,0,9">
+                                            Margin="0,0,0,8">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="{StaticResource Surface}"/>
                                                 <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
                                                 <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="Background" Value="#0C1718"/>
+                                                        <Setter Property="BorderBrush" Value="#265A56"/>
+                                                    </DataTrigger>
                                                     <Trigger Property="IsMouseOver" Value="True">
                                                         <Setter Property="Background" Value="{StaticResource SurfaceRaised}"/>
                                                         <Setter Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
@@ -198,7 +195,7 @@
 
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="34"/>
+                                                <ColumnDefinition Width="36"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
@@ -214,7 +211,7 @@
                                                                TextTrimming="CharacterEllipsis"
                                                                ToolTip="{Binding Title}"/>
 
-                                                    <Border CornerRadius="5" Padding="6,3" Margin="9,0,0,0" VerticalAlignment="Center">
+                                                    <Border CornerRadius="4" Padding="6,3" Margin="9,0,0,0" VerticalAlignment="Center">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Background" Value="{StaticResource InfoSoft}"/>
@@ -285,7 +282,7 @@
                     </ScrollViewer>
                 </Grid>
 
-                <!-- Footer/action bar -->
+                <!-- Trust/action footer -->
                 <Border Grid.Row="4" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0"
                         Padding="0,16,0,0" Margin="0,12,0,0">
                     <Grid>
@@ -294,16 +291,19 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Microsoft Windows Update source" Foreground="{StaticResource TextSecondary}" FontSize="9.5"/>
-                            <TextBlock Text="No ads  ·  No telemetry  ·  No third-party driver catalog"
-                                       Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,3,0,0"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Image Source="{StaticResource NodusMarkDrawing}" Width="20" Height="16" Stretch="Uniform" Margin="0,0,9,0" Opacity="0.8"/>
+                            <StackPanel>
+                                <TextBlock Text="Microsoft Windows Update only" Foreground="{StaticResource TextSecondary}" FontSize="9.5"/>
+                                <TextBlock Text="No ads  ·  No telemetry  ·  No third-party driver catalog"
+                                           Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,3,0,0"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
                                 Command="{Binding InstallCommand}"
                                 HorizontalAlignment="Right"
-                                MinWidth="160" Padding="18,11">
+                                MinWidth="168" Padding="20,11">
                             <TextBlock Text="{Binding InstallButtonText}" FontWeight="SemiBold"/>
                         </Button>
                     </Grid>

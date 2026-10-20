@@ -27,13 +27,55 @@ public sealed partial class DriverUpdateItemViewModel : ObservableObject
     public string Manufacturer => Update.Manufacturer;
     public string Model => Update.Model;
     public string DriverClass => Update.DriverClass;
+    public string CategoryLabel => FriendlyCategory(Update.DriverClass);
     public string DriverVersionDate => Update.DriverVersionDate;
     public string CurrentVersion => InstalledDriver?.DriverVersion ?? "Not identified";
-    public string OfferedVersion => TryExtractVersion(Update.Title) ?? "Windows Update";
-    public string VersionSummary => InstalledDriver is null
-        ? $"Update offered · {OfferedVersion}"
-        : $"Current {CurrentVersion}  →  {OfferedVersion}";
+    public string? OfferedVersion => TryExtractVersion(Update.Title);
     public string Size => Update.MaxDownloadSize <= 0 ? "Size unavailable" : FormatBytes(Update.MaxDownloadSize);
+
+    public bool HasInstalledMatch => InstalledDriver is not null;
+    public bool HasOfferedVersion => !string.IsNullOrWhiteSpace(OfferedVersion);
+    public bool IsSameVersion =>
+        HasInstalledMatch &&
+        HasOfferedVersion &&
+        string.Equals(CurrentVersion, OfferedVersion, StringComparison.OrdinalIgnoreCase);
+
+    public string OfferKind => !HasOfferedVersion
+        ? "Offer"
+        : IsSameVersion
+            ? "Package"
+            : HasInstalledMatch
+                ? "Upgrade"
+                : "Offer";
+
+    public string OfferLabel => OfferKind switch
+    {
+        "Upgrade" => "NEW VERSION",
+        "Package" => "PACKAGE REFRESH",
+        _ => "WINDOWS UPDATE"
+    };
+
+    public string VersionSummary
+    {
+        get
+        {
+            if (!HasInstalledMatch && !HasOfferedVersion)
+                return "Compatible driver package available";
+
+            if (!HasInstalledMatch)
+                return $"Version {OfferedVersion} available";
+
+            if (!HasOfferedVersion)
+                return $"Current {CurrentVersion} · target version not reported";
+
+            if (IsSameVersion)
+                return $"Version {CurrentVersion} · Windows Update package available";
+
+            return $"Current {CurrentVersion}  →  {OfferedVersion}";
+        }
+    }
+
+    public string MetadataSummary => $"{Manufacturer}  ·  {CategoryLabel}  ·  {Size}";
 
     public bool IsSelected
     {
@@ -45,6 +87,24 @@ public sealed partial class DriverUpdateItemViewModel : ObservableObject
     {
         var matches = VersionToken().Matches(title);
         return matches.Count == 0 ? null : matches[^1].Value;
+    }
+
+    private static string FriendlyCategory(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "Driver";
+
+        return value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase).ToLowerInvariant() switch
+        {
+            "networking" or "net" => "Network",
+            "securitydevices" or "security" => "Security",
+            "otherhardware" or "system" => "System component",
+            "display" => "Display",
+            "media" => "Audio / media",
+            "bluetooth" => "Bluetooth",
+            "hidclass" => "Input device",
+            "usb" => "USB",
+            _ => value
+        };
     }
 
     [GeneratedRegex(@"(?<!\d)\d+(?:\.\d+){1,5}(?!\d)")]

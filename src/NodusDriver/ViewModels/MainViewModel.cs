@@ -142,7 +142,14 @@ public sealed class MainViewModel : ObservableObject
 
         try
         {
-            var result = await _elevatedInstaller.InstallAsync(selected);
+            var result = await _elevatedInstaller.InstallAsync(selected, () =>
+            {
+                Status = selected.Count == 1 ? "Installing driver" : "Installing drivers";
+                StatusDetail = selected.Count == 1
+                    ? "Windows permission granted. NODUS is downloading and installing the selected driver through Windows Update…"
+                    : $"Windows permission granted. NODUS is downloading and installing {selected.Count} selected drivers through Windows Update…";
+            });
+
             RebootRequired = result.RebootRequired;
 
             if (result.InstallSucceeded)

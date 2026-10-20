@@ -42,10 +42,10 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Style="{StaticResource GhostButton}" Width="42" Height="36" Padding="0" Click="Minimize_Click" ToolTip="Minimize">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE921;" FontSize="12"/>
+                        <TextBlock Text="—" FontSize="14"/>
                     </Button>
                     <Button Style="{StaticResource GhostButton}" Width="42" Height="36" Padding="0" Click="Close_Click" ToolTip="Close">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE8BB;" FontSize="11"/>
+                        <TextBlock Text="×" FontSize="15"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -68,14 +68,14 @@
 
                 <StackPanel>
                     <TextBlock Text="Your drivers" FontSize="30" FontWeight="SemiBold"/>
-                    <TextBlock Text="NODUS Driver checks Windows Update for drivers that match this PC."
+                    <TextBlock Text="NODUS checks Windows Update for drivers that match this PC."
                                Foreground="{StaticResource TextSecondary}" FontSize="13" Margin="0,6,0,0"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" Style="{StaticResource GhostButton}" Command="{Binding ScanCommand}"
                         VerticalAlignment="Top" Padding="12,8" ToolTip="Scan again">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE895;" FontSize="12" Margin="0,0,7,0"/>
+                        <TextBlock Text="↻" FontSize="14" Margin="0,0,7,0"/>
                         <TextBlock Text="Scan again" FontSize="11"/>
                     </StackPanel>
                 </Button>
@@ -96,8 +96,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Border Width="44" Height="44" CornerRadius="12" Background="{StaticResource AccentDark}" Margin="0,0,15,0">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   Text="&#xE73E;" Foreground="{StaticResource Accent}" FontSize="18"
+                        <TextBlock Text="✓" Foreground="{StaticResource Accent}" FontSize="20" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
 
@@ -126,9 +125,10 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="Available updates" FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondary}" FontSize="11">
-                    <Run Text="{Binding UpdateCount}"/><Run Text=" found"/>
-                </TextBlock>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="{Binding UpdateCount}" Foreground="{StaticResource TextSecondary}" FontSize="11"/>
+                    <TextBlock Text=" found" Foreground="{StaticResource TextSecondary}" FontSize="11"/>
+                </StackPanel>
             </Grid>
 
             <Grid Grid.Row="3">
@@ -172,39 +172,12 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding HasScanned}" Value="True"/>
-                                        <Condition Binding="{Binding HasUpdates}" Value="False"/>
-                                        <Condition Binding="{Binding IsBusy}" Value="False"/>
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </MultiDataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE73E;"
-                               Foreground="{StaticResource Accent}" FontSize="26" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Nothing to install" FontSize="13" FontWeight="SemiBold" Margin="0,10,0,0" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Windows Update did not report any newer compatible drivers."
-                               Foreground="{StaticResource TextSecondary}" FontSize="11" Margin="0,5,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
             </Grid>
 
             <Border Grid.Row="4" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="0,15,0,0" Margin="0,12,0,0">
                 <Grid>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE72E;"
-                                   Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,0,7,0"/>
-                        <TextBlock Text="Microsoft Windows Update only · no ads · no telemetry"
-                                   Foreground="{StaticResource TextSecondary}" FontSize="10"/>
-                    </StackPanel>
+                    <TextBlock Text="Microsoft Windows Update only · no ads · no telemetry"
+                               Foreground="{StaticResource TextSecondary}" FontSize="10" VerticalAlignment="Center"/>
 
                     <Button Style="{StaticResource PrimaryButton}"
                             Command="{Binding InstallCommand}"

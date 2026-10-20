@@ -22,7 +22,13 @@ public partial class App : Application
         if (e.Args.Length >= 2 && string.Equals(e.Args[0], "--elevated-install", StringComparison.OrdinalIgnoreCase))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            var exitCode = ElevatedInstallRunner.RunAsync(e.Args[1]).GetAwaiter().GetResult();
+
+            // The elevated worker has no UI. Run its async flow on a pool thread so
+            // blocking this WPF startup thread cannot deadlock async continuations.
+            var exitCode = Task.Run(() => ElevatedInstallRunner.RunAsync(e.Args[1]))
+                .GetAwaiter()
+                .GetResult();
+
             Shutdown(exitCode);
             return;
         }

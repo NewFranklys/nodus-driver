@@ -1,5 +1,5 @@
 #define MyAppName "NODUS Driver"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.1"
 #define MyAppPublisher "Franklys"
 #define MyAppExeName "NodusDriver.exe"
 
@@ -32,4 +32,4 @@ Name: "{autodesktop}\NODUS Driver"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch NODUS Driver"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch NODUS Driver"; Flags: nowait postinstall skipifsilent runascurrentuser

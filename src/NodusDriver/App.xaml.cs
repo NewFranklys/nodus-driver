@@ -1,6 +1,8 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using NodusDriver.Services;
+using NodusDriver.Views;
 
 namespace NodusDriver;
 
@@ -11,6 +13,23 @@ public partial class App : Application
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        if (e.Args.Length >= 2 && string.Equals(e.Args[0], "--elevated-install", StringComparison.OrdinalIgnoreCase))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var exitCode = ElevatedInstallRunner.RunAsync(e.Args[1]).GetAwaiter().GetResult();
+            Shutdown(exitCode);
+            return;
+        }
+
+        var window = new MainWindow();
+        MainWindow = window;
+        window.Show();
     }
 
     private static string CrashLogPath

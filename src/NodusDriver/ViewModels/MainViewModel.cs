@@ -14,7 +14,7 @@ public sealed class MainViewModel : ObservableObject
     private bool _isBusy;
     private bool _hasScanned;
     private string _status = "Starting NODUS Driver";
-    private string _statusDetail = "Preparing to check this PC for compatible driver updates.";
+    private string _statusDetail = "Preparing to check this PC for compatible driver packages.";
     private string _lastScan = "Not yet";
     private int _installedDriverCount;
     private bool _rebootRequired;
@@ -62,13 +62,16 @@ public sealed class MainViewModel : ObservableObject
     public int InstalledDriverCount { get => _installedDriverCount; private set => SetProperty(ref _installedDriverCount, value); }
     public bool RebootRequired { get => _rebootRequired; private set => SetProperty(ref _rebootRequired, value); }
     public int UpdateCount => Updates.Count;
+    public int ConfirmedUpgradeCount => Updates.Count(x => x.OfferKind == "Upgrade");
+    public int PackageRefreshCount => Updates.Count(x => x.OfferKind == "Package");
     public bool HasUpdates => Updates.Count > 0;
     public int SelectedCount => Updates.Count(x => x.IsSelected);
+    public string PackageCountText => UpdateCount == 1 ? "1 package" : $"{UpdateCount} packages";
     public string InstallButtonText => SelectedCount switch
     {
-        0 => "Select an update",
-        1 => "Update 1 driver",
-        _ => $"Update {SelectedCount} drivers"
+        0 => "Select a driver",
+        1 => "Update selected driver",
+        _ => $"Update selected  ·  {SelectedCount}"
     };
 
     private async Task ScanAsync()
@@ -77,7 +80,7 @@ public sealed class MainViewModel : ObservableObject
         RebootRequired = false;
         HasScanned = false;
         Status = "Checking this PC";
-        StatusDetail = "Reading installed devices and asking Windows Update for compatible drivers…";
+        StatusDetail = "Reading installed devices and asking Windows Update for compatible driver packages…";
 
         try
         {
@@ -111,13 +114,13 @@ public sealed class MainViewModel : ObservableObject
 
             if (Updates.Count == 0)
             {
-                Status = "Your drivers are up to date";
-                StatusDetail = "Windows Update did not report any newer compatible drivers for this PC.";
+                Status = "This PC is up to date";
+                StatusDetail = "Windows Update did not report any compatible driver packages that need attention.";
             }
             else
             {
-                Status = $"{Updates.Count} update{(Updates.Count == 1 ? "" : "s")} available";
-                StatusDetail = "They are selected by default. Review the list and update when you're ready.";
+                Status = Updates.Count == 1 ? "1 driver package available" : $"{Updates.Count} driver packages available";
+                StatusDetail = BuildScanDetail();
             }
         }
         catch (Exception ex)
@@ -133,6 +136,23 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
+    private string BuildScanDetail()
+    {
+        var confirmed = ConfirmedUpgradeCount;
+        var refreshes = PackageRefreshCount;
+        var other = UpdateCount - confirmed - refreshes;
+
+        var parts = new List<string>();
+        if (confirmed > 0)
+            parts.Add(confirmed == 1 ? "1 newer driver version" : $"{confirmed} newer driver versions");
+        if (refreshes > 0)
+            parts.Add(refreshes == 1 ? "1 same-version package refresh" : $"{refreshes} same-version package refreshes");
+        if (other > 0)
+            parts.Add(other == 1 ? "1 compatible package with an unreported target version" : $"{other} compatible packages with unreported target versions");
+
+        return $"Windows Update reported {string.Join(", ", parts)}. Review the list before installing.";
+    }
+
     private async Task InstallSelectedAsync()
     {
         var selected = Updates.Where(x => x.IsSelected).Select(x => x.Update).ToList();
@@ -141,7 +161,7 @@ public sealed class MainViewModel : ObservableObject
         IsBusy = true;
         RebootRequired = false;
         Status = "Windows permission required";
-        StatusDetail = $"NODUS will ask Windows for administrator permission to install {selected.Count} selected driver update{(selected.Count == 1 ? "" : "s")}.";
+        StatusDetail = $"NODUS will ask Windows for administrator permission to install {selected.Count} selected driver package{(selected.Count == 1 ? "" : "s")}.";
 
         try
         {
@@ -149,8 +169,8 @@ public sealed class MainViewModel : ObservableObject
             {
                 Status = selected.Count == 1 ? "Installing driver" : "Installing drivers";
                 StatusDetail = selected.Count == 1
-                    ? "Windows permission granted. NODUS is downloading and installing the selected driver through Windows Update…"
-                    : $"Windows permission granted. NODUS is downloading and installing {selected.Count} selected drivers through Windows Update…";
+                    ? "Windows permission granted. NODUS is downloading and installing the selected package through Windows Update…"
+                    : $"Windows permission granted. NODUS is downloading and installing {selected.Count} selected packages through Windows Update…";
             });
 
             RebootRequired = result.RebootRequired;
@@ -236,8 +256,11 @@ public sealed class MainViewModel : ObservableObject
     private void RefreshUpdateProperties()
     {
         OnPropertyChanged(nameof(UpdateCount));
+        OnPropertyChanged(nameof(ConfirmedUpgradeCount));
+        OnPropertyChanged(nameof(PackageRefreshCount));
         OnPropertyChanged(nameof(HasUpdates));
         OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(PackageCountText));
         OnPropertyChanged(nameof(InstallButtonText));
         InstallCommand.RaiseCanExecuteChanged();
     }

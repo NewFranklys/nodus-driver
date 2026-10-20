@@ -152,8 +152,9 @@
                                         <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Left"/>
 
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                            <WrapPanel Margin="0,5,0,0">
+                                            <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                            <TextBlock Text="{Binding VersionSummary}" Foreground="{StaticResource Accent}" FontSize="10" Margin="0,5,0,0"/>
+                                            <WrapPanel Margin="0,4,0,0">
                                                 <TextBlock Text="{Binding Manufacturer}" Foreground="{StaticResource TextSecondary}" FontSize="10"/>
                                                 <TextBlock Text="  ·  " Foreground="#4E5662" FontSize="10"/>
                                                 <TextBlock Text="{Binding DriverClass}" Foreground="{StaticResource TextSecondary}" FontSize="10"/>

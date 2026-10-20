@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using NodusDriver.Infrastructure;
+using NodusDriver.Models;
 using NodusDriver.Services;
 
 namespace NodusDriver.ViewModels;
@@ -84,12 +85,14 @@ public sealed class MainViewModel : ObservableObject
             var updateTask = _windowsUpdate.SearchDriverUpdatesAsync();
             await Task.WhenAll(installedTask, updateTask);
 
-            InstalledDriverCount = installedTask.Result.Count;
+            var installedDrivers = installedTask.Result;
+            InstalledDriverCount = installedDrivers.Count;
             Updates.Clear();
 
             foreach (var update in updateTask.Result)
             {
-                var item = new DriverUpdateItemViewModel(update);
+                var installedMatch = FindBestInstalledMatch(update, installedDrivers);
+                var item = new DriverUpdateItemViewModel(update, installedMatch);
                 item.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName == nameof(DriverUpdateItemViewModel.IsSelected))
@@ -181,6 +184,53 @@ public sealed class MainViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private static InstalledDriver? FindBestInstalledMatch(DriverUpdate update, IReadOnlyList<InstalledDriver> installedDrivers)
+    {
+        InstalledDriver? best = null;
+        var bestScore = 0;
+
+        var model = Normalize(update.Model);
+        var title = Normalize(update.Title);
+        var manufacturer = Normalize(update.Manufacturer);
+        var driverClass = Normalize(update.DriverClass);
+
+        foreach (var candidate in installedDrivers)
+        {
+            var score = 0;
+            var deviceName = Normalize(candidate.DeviceName);
+            var candidateManufacturer = Normalize(candidate.Manufacturer);
+            var candidateClass = Normalize(candidate.DeviceClass);
+
+            if (model.Length >= 4 && deviceName.Length >= 4 &&
+                (deviceName.Contains(model, StringComparison.Ordinal) || model.Contains(deviceName, StringComparison.Ordinal)))
+                score += 100;
+
+            if (deviceName.Length >= 5 && title.Contains(deviceName, StringComparison.Ordinal))
+                score += 80;
+
+            if (manufacturer.Length >= 3 && candidateManufacturer.Length >= 3 &&
+                (manufacturer.Contains(candidateManufacturer, StringComparison.Ordinal) || candidateManufacturer.Contains(manufacturer, StringComparison.Ordinal)))
+                score += 25;
+
+            if (driverClass.Length > 0 && driverClass == candidateClass)
+                score += 20;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = candidate;
+            }
+        }
+
+        return bestScore >= 80 ? best : null;
+    }
+
+    private static string Normalize(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        return new string(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
     }
 
     private void RefreshUpdateProperties()

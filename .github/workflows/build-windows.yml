@@ -1,0 +1,60 @@
+name: Windows build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore .\NodusDriver.sln
+
+      - name: Build
+        run: dotnet build .\NodusDriver.sln -c Release --no-restore
+
+      - name: Publish self-contained app
+        run: >-
+          dotnet publish .\src\NodusDriver\NodusDriver.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          -o .\artifacts\portable
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\artifacts\installer | Out-Null
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" .\installer\NodusDriver.iss
+
+      - name: Upload portable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: NODUS-Driver-portable-win-x64
+          path: artifacts/portable/**
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: NODUS-Driver-setup-win-x64
+          path: artifacts/installer/NODUS-Driver-Setup.exe

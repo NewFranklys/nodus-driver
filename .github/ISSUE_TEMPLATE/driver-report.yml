@@ -1,0 +1,50 @@
+name: Driver / hardware report
+description: Tell us when NODUS Driver behaves differently on your PC.
+title: "[Hardware] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing NODUS Driver. Please avoid posting serial numbers, Windows product keys, account names, or other personal information.
+  - type: input
+    id: version
+    attributes:
+      label: NODUS Driver version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows version
+      options:
+        - Windows 10 x64
+        - Windows 11 x64
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: pc
+    attributes:
+      label: PC / motherboard / notebook model
+      placeholder: Example: Lenovo IdeaPad 3 / ASUS B550M
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU
+  - type: textarea
+    id: issue
+    attributes:
+      label: What happened?
+      placeholder: What did NODUS Driver show, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Relevant log excerpt
+      description: Optional. Remove anything you do not want to share.

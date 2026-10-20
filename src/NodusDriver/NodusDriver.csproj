@@ -8,7 +8,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>NodusDriver</AssemblyName>
     <RootNamespace>NodusDriver</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.4</Version>
     <Authors>Franklys</Authors>
     <Description>Free and open-source Windows driver updater powered by Microsoft Windows Update.</Description>
     <PublishSingleFile>true</PublishSingleFile>

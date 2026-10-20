@@ -21,7 +21,6 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- D2 branded title bar -->
             <Border Grid.Row="0"
                     Background="#071012"
                     BorderBrush="{StaticResource Border}"
@@ -66,7 +65,6 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Product header -->
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -77,7 +75,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Border Width="24" Height="2" Background="{StaticResource Accent}" VerticalAlignment="Center" Margin="0,0,9,0"/>
                             <TextBlock Text="THIS PC" Foreground="{StaticResource Accent}"
-                                       FontSize="9" FontWeight="Bold" CharacterSpacing="120"/>
+                                       FontSize="9" FontWeight="Bold"/>
                         </StackPanel>
                         <TextBlock Text="Drivers for this PC" FontSize="30" FontWeight="SemiBold" Margin="0,8,0,0"/>
                         <TextBlock Text="Compatible packages reported by Microsoft Windows Update. No third-party driver catalog."
@@ -94,7 +92,6 @@
                     </Button>
                 </Grid>
 
-                <!-- Scan/status panel -->
                 <Border Grid.Row="1"
                         Background="{StaticResource Surface}"
                         BorderBrush="{StaticResource Border}"
@@ -151,7 +148,6 @@
                     </Grid>
                 </Border>
 
-                <!-- List heading -->
                 <Grid Grid.Row="2" Margin="1,0,1,11">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -166,7 +162,6 @@
                                Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- Driver package list -->
                 <Grid Grid.Row="3">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding Updates}">
@@ -282,7 +277,6 @@
                     </ScrollViewer>
                 </Grid>
 
-                <!-- Trust/action footer -->
                 <Border Grid.Row="4" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0"
                         Padding="0,16,0,0" Margin="0,12,0,0">
                     <Grid>

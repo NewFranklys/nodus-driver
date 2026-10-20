@@ -8,6 +8,7 @@ public sealed class MainViewModel : ObservableObject
 {
     private readonly InstalledDriverService _drivers;
     private readonly WindowsUpdateService _windowsUpdate;
+    private readonly ElevatedInstallLauncher _elevatedInstaller;
     private readonly LogService _log;
     private bool _isBusy;
     private bool _hasScanned;
@@ -22,6 +23,7 @@ public sealed class MainViewModel : ObservableObject
         _log = new LogService();
         _drivers = new InstalledDriverService(_log);
         _windowsUpdate = new WindowsUpdateService(_log);
+        _elevatedInstaller = new ElevatedInstallLauncher(_log);
         ScanCommand = new AsyncCommand(ScanAsync, () => !IsBusy);
         InstallCommand = new AsyncCommand(InstallSelectedAsync, () => !IsBusy && Updates.Any(x => x.IsSelected));
     }
@@ -134,18 +136,33 @@ public sealed class MainViewModel : ObservableObject
         if (selected.Count == 0) return;
 
         IsBusy = true;
-        Status = "Updating drivers";
-        StatusDetail = $"Downloading and installing {selected.Count} selected update{(selected.Count == 1 ? "" : "s")} through Windows Update…";
+        RebootRequired = false;
+        Status = "Windows permission required";
+        StatusDetail = $"NODUS will ask Windows for administrator permission to install {selected.Count} selected driver update{(selected.Count == 1 ? "" : "s")}.";
 
         try
         {
-            var result = await _windowsUpdate.InstallAsync(selected);
+            var result = await _elevatedInstaller.InstallAsync(selected);
             RebootRequired = result.RebootRequired;
-            Status = result.InstallSucceeded ? "Update complete" : "Update needs attention";
-            StatusDetail = result.Message;
 
-            if (result.InstallSucceeded && !result.RebootRequired)
-                await ScanAsync();
+            if (result.InstallSucceeded)
+            {
+                Status = result.RebootRequired ? "Restart required" : "Update complete";
+                StatusDetail = result.Message;
+
+                if (!result.RebootRequired)
+                    await ScanAsync();
+            }
+            else if (result.ResultCode == 1223)
+            {
+                Status = "Update cancelled";
+                StatusDetail = result.Message;
+            }
+            else
+            {
+                Status = "Update needs attention";
+                StatusDetail = result.Message;
+            }
         }
         catch (Exception ex)
         {

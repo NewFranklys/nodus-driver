@@ -12,7 +12,9 @@ public sealed class ElevatedInstallLauncher
 
     public ElevatedInstallLauncher(LogService log) => _log = log;
 
-    public async Task<InstallSummary> InstallAsync(IReadOnlyList<DriverUpdate> updates)
+    public async Task<InstallSummary> InstallAsync(
+        IReadOnlyList<DriverUpdate> updates,
+        Action? onElevationGranted = null)
     {
         if (updates.Count == 0)
             return new InstallSummary(false, false, false, 0, "No updates selected.");
@@ -49,6 +51,9 @@ public sealed class ElevatedInstallLauncher
             using var process = Process.Start(startInfo);
             if (process is null)
                 return new InstallSummary(false, false, false, -1, "Windows could not start the elevated installer process.");
+
+            _log.Info($"Elevation accepted. Elevated installer PID={process.Id}.");
+            onElevationGranted?.Invoke();
 
             await process.WaitForExitAsync();
 

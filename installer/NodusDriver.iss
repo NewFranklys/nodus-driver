@@ -19,7 +19,6 @@ WizardStyle=modern
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-SetupIconFile=..\src\NodusDriver\Assets\NodusDriver.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Files]

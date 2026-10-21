@@ -12,9 +12,11 @@ public sealed class MainViewModel : ObservableObject
     private readonly ElevatedInstallLauncher _elevatedInstaller;
     private readonly LogService _log;
     private bool _isBusy;
+    private bool _isScanning;
+    private bool _isInstalling;
     private bool _hasScanned;
-    private string _status = "Starting NODUS Driver";
-    private string _statusDetail = "Preparing to check this PC for compatible driver packages.";
+    private string _status = "Ready to scan";
+    private string _statusDetail = "NODUS will inspect this PC and ask Microsoft Windows Update for compatible driver packages.";
     private string _lastScan = "Not yet";
     private int _installedDriverCount;
     private bool _rebootRequired;
@@ -30,6 +32,7 @@ public sealed class MainViewModel : ObservableObject
     }
 
     public ObservableCollection<DriverUpdateItemViewModel> Updates { get; } = [];
+    public ObservableCollection<HardwareDeviceItemViewModel> HardwareDevices { get; } = [];
     public AsyncCommand ScanCommand { get; }
     public AsyncCommand InstallCommand { get; }
     public string LogPath => _log.LogPath;
@@ -50,6 +53,18 @@ public sealed class MainViewModel : ObservableObject
 
     public bool IsIdle => !IsBusy;
 
+    public bool IsScanning
+    {
+        get => _isScanning;
+        private set => SetProperty(ref _isScanning, value);
+    }
+
+    public bool IsInstalling
+    {
+        get => _isInstalling;
+        private set => SetProperty(ref _isInstalling, value);
+    }
+
     public bool HasScanned
     {
         get => _hasScanned;
@@ -61,11 +76,12 @@ public sealed class MainViewModel : ObservableObject
     public string LastScan { get => _lastScan; private set => SetProperty(ref _lastScan, value); }
     public int InstalledDriverCount { get => _installedDriverCount; private set => SetProperty(ref _installedDriverCount, value); }
     public bool RebootRequired { get => _rebootRequired; private set => SetProperty(ref _rebootRequired, value); }
+
     public int UpdateCount => Updates.Count;
-    public int ConfirmedUpgradeCount => Updates.Count(x => x.HasInstalledMatch && x.HasOfferedVersion && !x.IsSameVersion);
-    public int PackageRefreshCount => Updates.Count(x => x.IsSameVersion);
-    public int KnownTargetUnknownCurrentCount => Updates.Count(x => !x.HasInstalledMatch && x.HasOfferedVersion);
-    public int UnknownTargetCount => Updates.Count(x => !x.HasOfferedVersion);
+    public int ConfirmedUpgradeCount => Updates.Count(x => x.OfferKind == "Upgrade");
+    public int PackageRefreshCount => Updates.Count(x => x.OfferKind == "Package");
+    public int VersionKnownCurrentUnknownCount => Updates.Count(x => x.OfferKind == "Offer" && x.HasOfferedVersion && !x.HasInstalledMatch);
+    public int TargetUnknownCount => Updates.Count(x => x.OfferKind == "Offer" && !x.HasOfferedVersion);
     public bool HasUpdates => Updates.Count > 0;
     public int SelectedCount => Updates.Count(x => x.IsSelected);
     public string PackageCountText => UpdateCount == 1 ? "1 package" : $"{UpdateCount} packages";
@@ -76,25 +92,38 @@ public sealed class MainViewModel : ObservableObject
         _ => $"Update selected  ·  {SelectedCount}"
     };
 
+    public int HardwareCount => HardwareDevices.Count;
+    public int NetworkDeviceCount => HardwareDevices.Count(x => x.Category == "Network");
+    public int DisplayDeviceCount => HardwareDevices.Count(x => x.Category == "Display");
+    public int AudioDeviceCount => HardwareDevices.Count(x => x.Category == "Audio / media");
+    public int BluetoothDeviceCount => HardwareDevices.Count(x => x.Category == "Bluetooth");
+    public string HardwareCountText => HardwareCount == 1 ? "1 detected device" : $"{HardwareCount} detected devices";
+
     private async Task ScanAsync()
     {
         IsBusy = true;
+        IsScanning = true;
+        IsInstalling = false;
         RebootRequired = false;
         HasScanned = false;
-        Status = "Checking this PC";
-        StatusDetail = "Reading installed devices and asking Windows Update for compatible driver packages…";
+        Status = "Detecting hardware";
+        StatusDetail = "Reading Plug and Play devices and the drivers currently installed on this PC.";
 
         try
         {
-            var installedTask = _drivers.GetInstalledDriversAsync();
-            var updateTask = _windowsUpdate.SearchDriverUpdatesAsync();
-            await Task.WhenAll(installedTask, updateTask);
-
-            var installedDrivers = installedTask.Result;
+            var installedDrivers = await _drivers.GetInstalledDriversAsync();
             InstalledDriverCount = installedDrivers.Count;
+            PopulateHardwareInventory(installedDrivers);
+
+            Status = "Checking Windows Update";
+            StatusDetail = "Asking Microsoft Windows Update for driver packages that apply to this hardware.";
+            var updateResults = await _windowsUpdate.SearchDriverUpdatesAsync();
+
+            Status = "Comparing driver packages";
+            StatusDetail = "Matching Windows Update offers against the drivers already installed on this PC.";
             Updates.Clear();
 
-            foreach (var update in updateTask.Result)
+            foreach (var update in updateResults)
             {
                 var installedMatch = FindBestInstalledMatch(update, installedDrivers);
                 var item = new DriverUpdateItemViewModel(update, installedMatch);
@@ -116,7 +145,7 @@ public sealed class MainViewModel : ObservableObject
 
             if (Updates.Count == 0)
             {
-                Status = "This PC is up to date";
+                Status = "Drivers are up to date";
                 StatusDetail = "Windows Update did not report any compatible driver packages that need attention.";
             }
             else
@@ -128,12 +157,13 @@ public sealed class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             HasScanned = true;
-            Status = "Driver check failed";
+            Status = "Driver scan failed";
             StatusDetail = ex.Message;
             _log.Error("Scan failed in UI flow.", ex);
         }
         finally
         {
+            IsScanning = false;
             IsBusy = false;
         }
     }
@@ -148,17 +178,17 @@ public sealed class MainViewModel : ObservableObject
         if (PackageRefreshCount > 0)
             parts.Add(PackageRefreshCount == 1 ? "1 same-version package refresh" : $"{PackageRefreshCount} same-version package refreshes");
 
-        if (KnownTargetUnknownCurrentCount > 0)
-            parts.Add(KnownTargetUnknownCurrentCount == 1
-                ? "1 package with a reported version whose current installed version could not be matched"
-                : $"{KnownTargetUnknownCurrentCount} packages with reported versions whose current installed versions could not be matched");
+        if (VersionKnownCurrentUnknownCount > 0)
+            parts.Add(VersionKnownCurrentUnknownCount == 1
+                ? "1 package with a reported available version whose current version could not be identified"
+                : $"{VersionKnownCurrentUnknownCount} packages with reported available versions whose current versions could not be identified");
 
-        if (UnknownTargetCount > 0)
-            parts.Add(UnknownTargetCount == 1
+        if (TargetUnknownCount > 0)
+            parts.Add(TargetUnknownCount == 1
                 ? "1 compatible package with no target version reported"
-                : $"{UnknownTargetCount} compatible packages with no target versions reported");
+                : $"{TargetUnknownCount} compatible packages with no target version reported");
 
-        return $"Windows Update reported {string.Join(", ", parts)}. Review the list before installing.";
+        return $"Windows Update reported {string.Join(", ", parts)}. Review the details before installing.";
     }
 
     private async Task InstallSelectedAsync()
@@ -167,6 +197,8 @@ public sealed class MainViewModel : ObservableObject
         if (selected.Count == 0) return;
 
         IsBusy = true;
+        IsScanning = false;
+        IsInstalling = true;
         RebootRequired = false;
         Status = "Windows permission required";
         StatusDetail = $"NODUS will ask Windows for administrator permission to install {selected.Count} selected driver package{(selected.Count == 1 ? "" : "s")}.";
@@ -177,8 +209,8 @@ public sealed class MainViewModel : ObservableObject
             {
                 Status = selected.Count == 1 ? "Installing driver" : "Installing drivers";
                 StatusDetail = selected.Count == 1
-                    ? "Windows permission granted. NODUS is downloading and installing the selected package through Windows Update…"
-                    : $"Windows permission granted. NODUS is downloading and installing {selected.Count} selected packages through Windows Update…";
+                    ? "Windows permission granted. NODUS is downloading and installing the selected package through Windows Update."
+                    : $"Windows permission granted. NODUS is downloading and installing {selected.Count} selected packages through Windows Update.";
             });
 
             RebootRequired = result.RebootRequired;
@@ -189,7 +221,10 @@ public sealed class MainViewModel : ObservableObject
                 StatusDetail = result.Message;
 
                 if (!result.RebootRequired)
+                {
+                    IsInstalling = false;
                     await ScanAsync();
+                }
             }
             else if (result.ResultCode == 1223)
             {
@@ -210,8 +245,28 @@ public sealed class MainViewModel : ObservableObject
         }
         finally
         {
+            IsInstalling = false;
             IsBusy = false;
         }
+    }
+
+    private void PopulateHardwareInventory(IReadOnlyList<InstalledDriver> installedDrivers)
+    {
+        HardwareDevices.Clear();
+
+        foreach (var driver in installedDrivers
+                     .OrderBy(x => x.DeviceClass)
+                     .ThenBy(x => x.DeviceName))
+        {
+            HardwareDevices.Add(new HardwareDeviceItemViewModel(driver));
+        }
+
+        OnPropertyChanged(nameof(HardwareCount));
+        OnPropertyChanged(nameof(NetworkDeviceCount));
+        OnPropertyChanged(nameof(DisplayDeviceCount));
+        OnPropertyChanged(nameof(AudioDeviceCount));
+        OnPropertyChanged(nameof(BluetoothDeviceCount));
+        OnPropertyChanged(nameof(HardwareCountText));
     }
 
     private static InstalledDriver? FindBestInstalledMatch(DriverUpdate update, IReadOnlyList<InstalledDriver> installedDrivers)
@@ -266,8 +321,8 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(UpdateCount));
         OnPropertyChanged(nameof(ConfirmedUpgradeCount));
         OnPropertyChanged(nameof(PackageRefreshCount));
-        OnPropertyChanged(nameof(KnownTargetUnknownCurrentCount));
-        OnPropertyChanged(nameof(UnknownTargetCount));
+        OnPropertyChanged(nameof(VersionKnownCurrentUnknownCount));
+        OnPropertyChanged(nameof(TargetUnknownCount));
         OnPropertyChanged(nameof(HasUpdates));
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(PackageCountText));

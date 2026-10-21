@@ -26,6 +26,7 @@ public sealed class MainViewModel : ObservableObject
     private DriverUpdateItemViewModel? _selectedUpdate;
     private string _hardwareSearchText = string.Empty;
     private string _selectedHardwareCategory = "All";
+    private bool _showSystemDevices;
 
     public MainViewModel()
     {
@@ -46,11 +47,6 @@ public sealed class MainViewModel : ObservableObject
     public AsyncCommand ScanCommand { get; }
     public AsyncCommand InstallCommand { get; }
     public string LogPath => _log.LogPath;
-
-    public IReadOnlyList<string> HardwareCategories { get; } =
-    [
-        "All", "Display", "Network", "Audio", "Bluetooth", "System", "Input", "USB", "Other"
-    ];
 
     public bool IsBusy
     {
@@ -106,7 +102,17 @@ public sealed class MainViewModel : ObservableObject
     }
 
     public string StatusDetail { get => _statusDetail; private set => SetProperty(ref _statusDetail, value); }
-    public string LastScan { get => _lastScan; private set => SetProperty(ref _lastScan, value); }
+
+    public string LastScan
+    {
+        get => _lastScan;
+        private set
+        {
+            if (SetProperty(ref _lastScan, value))
+                RefreshOverviewProperties();
+        }
+    }
+
     public int InstalledDriverCount { get => _installedDriverCount; private set => SetProperty(ref _installedDriverCount, value); }
     public bool RebootRequired { get => _rebootRequired; private set => SetProperty(ref _rebootRequired, value); }
 
@@ -116,7 +122,12 @@ public sealed class MainViewModel : ObservableObject
         private set
         {
             if (SetProperty(ref _scanStage, value))
+            {
                 OnPropertyChanged(nameof(ScanStageText));
+                OnPropertyChanged(nameof(IsHardwareStageActive));
+                OnPropertyChanged(nameof(IsWindowsUpdateStageActive));
+                OnPropertyChanged(nameof(IsComparisonStageActive));
+            }
         }
     }
 
@@ -127,6 +138,10 @@ public sealed class MainViewModel : ObservableObject
         3 => "Step 3 of 3  ·  Comparing packages",
         _ => string.Empty
     };
+
+    public bool IsHardwareStageActive => ScanStage >= 1;
+    public bool IsWindowsUpdateStageActive => ScanStage >= 2;
+    public bool IsComparisonStageActive => ScanStage >= 3;
 
     public DriverUpdateItemViewModel? SelectedUpdate
     {
@@ -140,11 +155,7 @@ public sealed class MainViewModel : ObservableObject
         set
         {
             if (SetProperty(ref _hardwareSearchText, value))
-            {
-                HardwareView.Refresh();
-                OnPropertyChanged(nameof(VisibleHardwareCount));
-                OnPropertyChanged(nameof(HardwareResultText));
-            }
+                RefreshHardwareView();
         }
     }
 
@@ -153,12 +164,19 @@ public sealed class MainViewModel : ObservableObject
         get => _selectedHardwareCategory;
         set
         {
-            if (SetProperty(ref _selectedHardwareCategory, value))
-            {
-                HardwareView.Refresh();
-                OnPropertyChanged(nameof(VisibleHardwareCount));
-                OnPropertyChanged(nameof(HardwareResultText));
-            }
+            var normalized = string.IsNullOrWhiteSpace(value) ? "All" : value;
+            if (SetProperty(ref _selectedHardwareCategory, normalized))
+                RefreshHardwareView();
+        }
+    }
+
+    public bool ShowSystemDevices
+    {
+        get => _showSystemDevices;
+        set
+        {
+            if (SetProperty(ref _showSystemDevices, value))
+                RefreshHardwareView();
         }
     }
 
@@ -170,6 +188,7 @@ public sealed class MainViewModel : ObservableObject
     public bool HasUpdates => Updates.Count > 0;
     public int SelectedCount => Updates.Count(x => x.IsSelected);
     public string PackageCountText => UpdateCount == 1 ? "1 package" : $"{UpdateCount} packages";
+
     public string SelectionSummaryText => SelectedCount switch
     {
         0 => "No packages selected",
@@ -189,11 +208,23 @@ public sealed class MainViewModel : ObservableObject
     public int DisplayDeviceCount => HardwareDevices.Count(x => x.Category == "Display");
     public int AudioDeviceCount => HardwareDevices.Count(x => x.Category == "Audio");
     public int BluetoothDeviceCount => HardwareDevices.Count(x => x.Category == "Bluetooth");
+    public int SystemDeviceCount => HardwareDevices.Count(x => x.IsSystemDevice);
     public int VisibleHardwareCount => HardwareDevices.Count(HardwareMatches);
     public string HardwareCountText => HardwareCount == 1 ? "1 detected device" : $"{HardwareCount} detected devices";
-    public string HardwareResultText => VisibleHardwareCount == HardwareCount
-        ? HardwareCountText
-        : $"{VisibleHardwareCount} of {HardwareCount} devices";
+    public string HardwareResultText => VisibleHardwareCount == 1 ? "1 device shown" : $"{VisibleHardwareCount} devices shown";
+
+    public string HardwareVisibilityHint
+    {
+        get
+        {
+            if (ShowSystemDevices || string.Equals(SelectedHardwareCategory, "System", StringComparison.OrdinalIgnoreCase))
+                return "System and virtual devices are included.";
+
+            return SystemDeviceCount == 0
+                ? "No system devices are currently hidden."
+                : $"{SystemDeviceCount} system or virtual device{(SystemDeviceCount == 1 ? " is" : "s are")} hidden by default.";
+        }
+    }
 
     public string OverviewHeadline
     {
@@ -230,6 +261,46 @@ public sealed class MainViewModel : ObservableObject
     public string HardwareOverviewText => HardwareCount == 0
         ? "Hardware inventory will appear after the first scan."
         : $"{HardwareCount} driver-backed devices detected across Windows Plug and Play.";
+
+    public string RecommendedTitle
+    {
+        get
+        {
+            if (IsScanning) return "Let the scan finish";
+            if (!HasScanned) return "Scan this PC";
+            if (Status.Contains("failed", StringComparison.OrdinalIgnoreCase)) return "Review the scan error";
+            if (ConfirmedUpgradeCount > 0)
+                return ConfirmedUpgradeCount == 1 ? "Review 1 newer driver" : $"Review {ConfirmedUpgradeCount} newer drivers";
+            if (UpdateCount > 0)
+                return UpdateCount == 1 ? "Review 1 Windows Update package" : $"Review {UpdateCount} Windows Update packages";
+            return "No action needed";
+        }
+    }
+
+    public string RecommendedDetail
+    {
+        get
+        {
+            if (IsScanning) return "NODUS is checking hardware, Windows Update, and package compatibility.";
+            if (!HasScanned) return "A scan is read-only until you explicitly choose a driver package to install.";
+            if (Status.Contains("failed", StringComparison.OrdinalIgnoreCase)) return StatusDetail;
+            if (ConfirmedUpgradeCount > 0) return "A confirmed newer version is available. Open Drivers to compare the installed and offered versions before installing.";
+            if (UpdateCount > 0) return "Windows Update has compatible packages to review, but not every offer is necessarily a newer version.";
+            return "Windows Update did not report a compatible driver package that needs attention right now.";
+        }
+    }
+
+    public string SessionTitle => LastScan == "Not yet" ? "No scan completed yet" : $"Last scan · {LastScan}";
+
+    public string SessionDetail
+    {
+        get
+        {
+            if (LastScan == "Not yet") return "Session activity will appear here after the first scan.";
+            var packages = UpdateCount == 1 ? "1 package found" : $"{UpdateCount} packages found";
+            return $"{HardwareCount} devices detected · {packages} · Microsoft Windows Update source.";
+        }
+    }
 
     private async Task ScanAsync()
     {
@@ -406,9 +477,8 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayDeviceCount));
         OnPropertyChanged(nameof(AudioDeviceCount));
         OnPropertyChanged(nameof(BluetoothDeviceCount));
-        OnPropertyChanged(nameof(VisibleHardwareCount));
-        OnPropertyChanged(nameof(HardwareCountText));
-        OnPropertyChanged(nameof(HardwareResultText));
+        OnPropertyChanged(nameof(SystemDeviceCount));
+        RefreshHardwareFilterProperties();
         RefreshOverviewProperties();
     }
 
@@ -416,6 +486,10 @@ public sealed class MainViewModel : ObservableObject
 
     private bool HardwareMatches(HardwareDeviceItemViewModel device)
     {
+        var explicitlyBrowsingSystem = string.Equals(SelectedHardwareCategory, "System", StringComparison.OrdinalIgnoreCase);
+        if (!ShowSystemDevices && !explicitlyBrowsingSystem && device.IsSystemDevice)
+            return false;
+
         if (!string.Equals(SelectedHardwareCategory, "All", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(device.Category, SelectedHardwareCategory, StringComparison.OrdinalIgnoreCase))
             return false;
@@ -428,6 +502,20 @@ public sealed class MainViewModel : ObservableObject
                device.Manufacturer.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                device.Category.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                device.DriverVersion.Contains(term, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RefreshHardwareView()
+    {
+        HardwareView.Refresh();
+        RefreshHardwareFilterProperties();
+    }
+
+    private void RefreshHardwareFilterProperties()
+    {
+        OnPropertyChanged(nameof(VisibleHardwareCount));
+        OnPropertyChanged(nameof(HardwareCountText));
+        OnPropertyChanged(nameof(HardwareResultText));
+        OnPropertyChanged(nameof(HardwareVisibilityHint));
     }
 
     private static InstalledDriver? FindBestInstalledMatch(DriverUpdate update, IReadOnlyList<InstalledDriver> installedDrivers)
@@ -500,5 +588,9 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(OverviewSummary));
         OnPropertyChanged(nameof(DriverOverviewText));
         OnPropertyChanged(nameof(HardwareOverviewText));
+        OnPropertyChanged(nameof(RecommendedTitle));
+        OnPropertyChanged(nameof(RecommendedDetail));
+        OnPropertyChanged(nameof(SessionTitle));
+        OnPropertyChanged(nameof(SessionDetail));
     }
 }

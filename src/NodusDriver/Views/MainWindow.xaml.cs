@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using NodusDriver.ViewModels;
 
 namespace NodusDriver.Views;
@@ -9,15 +10,46 @@ public partial class MainWindow : Window
 {
     private bool _started;
 
-    public MainWindow() => InitializeComponent();
+    public MainWindow()
+    {
+        InitializeComponent();
+        AddRecoveryTab();
+        ReplacePreviewVersion(this);
+    }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         if (_started) return;
         _started = true;
 
+        ReplacePreviewVersion(this);
+
         if (DataContext is MainViewModel vm)
             vm.ScanCommand.Execute(null);
+    }
+
+    private void AddRecoveryTab()
+    {
+        var tab = new TabItem
+        {
+            Header = "Recovery",
+            Content = new RecoveryView(),
+            Style = (Style)FindResource("NavTabItem")
+        };
+        MainTabs.Items.Add(tab);
+    }
+
+    private static void ReplacePreviewVersion(DependencyObject root)
+    {
+        var children = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < children; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is TextBlock text && text.Text.Contains("0.2.1", StringComparison.Ordinal))
+                text.Text = text.Text.Replace("0.2.1", "0.3.0", StringComparison.Ordinal);
+
+            ReplacePreviewVersion(child);
+        }
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

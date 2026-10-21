@@ -3,17 +3,168 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:NodusDriver.ViewModels"
         Title="NODUS Driver"
-        Width="1120" Height="760"
-        MinWidth="960" MinHeight="640"
+        Width="1180" Height="780"
+        MinWidth="1000" MinHeight="680"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
         Background="{StaticResource AppBackground}"
         Loaded="Window_Loaded"
         Icon="/NodusDriver;component/Assets/NodusMarkD2.png">
+
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
+
+    <Window.Resources>
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="MetaLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="FontSize" Value="8"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="LinkButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" Padding="0,4">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource AccentHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SearchBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource Surface}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="13,9"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="CaretBrush" Value="{StaticResource Accent}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentBorder}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentBorder}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FilterCombo" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource Surface}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="MinHeight" Value="36"/>
+        </Style>
+
+        <Style x:Key="DriverListItem" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="{StaticResource Surface}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,7"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Grid>
+                            <Border x:Name="Body"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8">
+                                <ContentPresenter/>
+                            </Border>
+                            <Border x:Name="Rail" Width="3" Margin="0,8,0,8"
+                                    Background="{StaticResource Accent}"
+                                    HorizontalAlignment="Left" CornerRadius="0,3,3,0"
+                                    Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{StaticResource SurfaceHover}"/>
+                                <Setter TargetName="Body" Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{StaticResource AccentSoft}"/>
+                                <Setter TargetName="Body" Property="BorderBrush" Value="{StaticResource AccentBorder}"/>
+                                <Setter TargetName="Rail" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="HardwareListItem" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+            <Setter Property="BorderThickness" Value="0,1,0,0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Body"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{StaticResource SurfaceHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Border BorderBrush="{StaticResource BorderStrong}" BorderThickness="1" Background="{StaticResource AppBackground}">
         <Grid>
@@ -27,37 +178,37 @@
                     BorderBrush="{StaticResource Border}"
                     BorderThickness="0,0,0,1"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid Margin="16,0,6,0">
+                <Grid Margin="15,0,5,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="NODUS Driver" Foreground="{StaticResource TextMuted}"
-                               FontSize="10" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="/NodusDriver;component/Assets/NodusMarkD2.png" Width="17" Height="17" Stretch="Uniform" Margin="0,0,8,0"/>
+                        <TextBlock Text="NODUS Driver" Foreground="{StaticResource TextMuted}" FontSize="9.5" VerticalAlignment="Center"/>
+                        <TextBlock Text="  ·  0.2.0 preview" Foreground="#40575A" FontSize="9" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Style="{StaticResource GhostButton}" Width="40" Height="32" Padding="0"
-                                Click="Minimize_Click" ToolTip="Minimize">
+                        <Button Style="{StaticResource GhostButton}" Width="40" Height="32" Padding="0" Click="Minimize_Click" ToolTip="Minimize">
                             <TextBlock Text="—" FontSize="14"/>
                         </Button>
-                        <Button Style="{StaticResource GhostButton}" Width="40" Height="32" Padding="0"
-                                Click="Close_Click" ToolTip="Close">
+                        <Button Style="{StaticResource GhostButton}" Width="40" Height="32" Padding="0" Click="Close_Click" ToolTip="Close">
                             <TextBlock Text="×" FontSize="15"/>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <TabControl Grid.Row="1" TabStripPlacement="Left" Background="Transparent" BorderThickness="0">
+            <TabControl x:Name="MainTabs" Grid.Row="1" TabStripPlacement="Left" Background="Transparent" BorderThickness="0">
                 <TabControl.Template>
                     <ControlTemplate TargetType="TabControl">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220"/>
+                                <ColumnDefinition Width="218"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="{StaticResource SidebarBackground}"
-                                    BorderBrush="{StaticResource Border}" BorderThickness="0,0,1,0">
+                            <Border Grid.Column="0" Background="{StaticResource SidebarBackground}" BorderBrush="{StaticResource Border}" BorderThickness="0,0,1,0">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -66,30 +217,21 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <StackPanel Margin="24,22,20,22">
-                                        <Image Source="/NodusDriver;component/Assets/NodusLogoD2.png"
-                                               Width="156" Height="52" Stretch="Uniform"
-                                               HorizontalAlignment="Left"/>
-                                        <Border Background="{StaticResource SurfaceRaised}" CornerRadius="4"
-                                                Padding="6,3" Margin="1,9,0,0" HorizontalAlignment="Left">
-                                            <TextBlock Text="PREVIEW 0.1.9" Foreground="{StaticResource TextMuted}"
-                                                       FontSize="8" FontWeight="SemiBold"/>
+                                    <StackPanel Margin="25,22,18,21">
+                                        <Image Source="/NodusDriver;component/Assets/NodusLogoD2.png" Width="158" Height="54" Stretch="Uniform" HorizontalAlignment="Left"/>
+                                        <Border Background="{StaticResource SurfaceRaised}" CornerRadius="4" Padding="6,3" Margin="1,8,0,0" HorizontalAlignment="Left">
+                                            <TextBlock Text="PREVIEW 0.2.0" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="SemiBold"/>
                                         </Border>
                                     </StackPanel>
 
-                                    <TextBlock Grid.Row="1" Text="SECTIONS" Foreground="{StaticResource TextMuted}"
-                                               FontSize="8" FontWeight="Bold" Margin="27,0,0,8"/>
-
+                                    <TextBlock Grid.Row="1" Text="SECTIONS" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold" Margin="27,0,0,8"/>
                                     <TabPanel Grid.Row="2" IsItemsHost="True" Background="Transparent"/>
 
-                                    <StackPanel Grid.Row="3" Margin="26,0,22,22">
+                                    <StackPanel Grid.Row="3" Margin="26,0,20,21">
                                         <Border Height="1" Background="{StaticResource Border}" Margin="0,0,0,14"/>
-                                        <TextBlock Text="MICROSOFT WINDOWS UPDATE" Foreground="{StaticResource TextMuted}"
-                                                   FontSize="8" FontWeight="Bold"/>
-                                        <TextBlock Text="No ads · No telemetry" Foreground="{StaticResource TextSecondary}"
-                                                   FontSize="9" Margin="0,5,0,0"/>
-                                        <TextBlock Text="Open source preview" Foreground="{StaticResource TextMuted}"
-                                                   FontSize="9" Margin="0,2,0,0"/>
+                                        <TextBlock Text="MICROSOFT WINDOWS UPDATE" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
+                                        <TextBlock Text="No ads · No telemetry" Foreground="{StaticResource TextSecondary}" FontSize="9" Margin="0,5,0,0"/>
+                                        <TextBlock Text="Open source preview" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -101,13 +243,15 @@
                     </ControlTemplate>
                 </TabControl.Template>
 
+                <!-- OVERVIEW -->
                 <TabItem Header="Overview" Style="{StaticResource NavTabItem}">
-                    <Grid Margin="38,30,38,30">
+                    <Grid Margin="38,28,38,26">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Grid>
@@ -116,14 +260,11 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="SYSTEM OVERVIEW" Foreground="{StaticResource Accent}" FontSize="9" FontWeight="Bold"/>
-                                <TextBlock Text="This PC at a glance" FontSize="29" FontWeight="SemiBold" Margin="0,7,0,0"/>
-                                <TextBlock Text="Drivers and hardware status, without the noise."
-                                           Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,7,0,0"/>
+                                <TextBlock Text="SYSTEM OVERVIEW" Style="{StaticResource SectionLabel}"/>
+                                <TextBlock Text="{Binding OverviewHeadline}" FontSize="30" FontWeight="SemiBold" Margin="0,7,0,0"/>
+                                <TextBlock Text="{Binding OverviewSummary}" Foreground="{StaticResource TextSecondary}" FontSize="11.5" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="650"/>
                             </StackPanel>
-                            <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
-                                    Command="{Binding ScanCommand}" VerticalAlignment="Top"
-                                    Padding="18,10" MinWidth="112">
+                            <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Command="{Binding ScanCommand}" VerticalAlignment="Top" Padding="18,10" MinWidth="118">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="↻" FontSize="14" Margin="0,0,8,0"/>
                                     <TextBlock Text="Scan this PC" FontWeight="SemiBold"/>
@@ -131,41 +272,43 @@
                             </Button>
                         </Grid>
 
-                        <Border Grid.Row="1" Background="{StaticResource Surface}"
-                                BorderBrush="{StaticResource Border}" BorderThickness="1"
-                                CornerRadius="10" Margin="0,28,0,0" Padding="0">
+                        <Border Grid.Row="1" Background="{StaticResource Surface}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Margin="0,26,0,0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="{StaticResource Accent}" CornerRadius="10,0,0,10"/>
+                                <Border Background="{StaticResource Accent}" CornerRadius="10,0,0,10"/>
                                 <StackPanel Grid.Column="1" Margin="22,18,24,18">
-                                    <TextBlock Text="{Binding Status}" FontSize="15" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding StatusDetail}" Foreground="{StaticResource TextSecondary}"
-                                               FontSize="10.5" TextWrapping="Wrap" Margin="0,5,0,0" MaxWidth="560"/>
-                                    <StackPanel Margin="0,14,0,0"
-                                                Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibility}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Status}" FontSize="14.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="   " />
+                                        <TextBlock Text="{Binding ScanStageText}" Foreground="{StaticResource Accent}" FontSize="9.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding StatusDetail}" Foreground="{StaticResource TextSecondary}" FontSize="10.5" TextWrapping="Wrap" Margin="0,5,0,0" MaxWidth="600"/>
+                                    <StackPanel Margin="0,14,0,0" Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibility}}">
                                         <ProgressBar Style="{StaticResource NodusProgressBar}" IsIndeterminate="True"/>
-                                        <TextBlock Text="Scanning in stages: hardware → Windows Update → package comparison"
-                                                   Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,7,0,0"/>
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="01  Hardware" Foreground="{StaticResource TextMuted}" FontSize="8.5"/>
+                                            <TextBlock Grid.Column="1" Text="02  Windows Update" Foreground="{StaticResource TextMuted}" FontSize="8.5" TextAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="03  Compare" Foreground="{StaticResource TextMuted}" FontSize="8.5" TextAlignment="Right"/>
+                                        </Grid>
                                     </StackPanel>
                                 </StackPanel>
                                 <Grid Grid.Column="2" Margin="0,18,22,18" VerticalAlignment="Center">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="1"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="1"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel Margin="0,0,20,0">
-                                        <TextBlock Text="DETECTED" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
+                                        <TextBlock Text="DETECTED" Style="{StaticResource MetaLabel}"/>
                                         <TextBlock Text="{Binding InstalledDriverCount}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
                                         <TextBlock Text="drivers" Foreground="{StaticResource TextSecondary}" FontSize="9"/>
                                     </StackPanel>
                                     <Border Grid.Column="1" Width="1" Background="{StaticResource Border}"/>
                                     <StackPanel Grid.Column="2" Margin="20,0,0,0">
-                                        <TextBlock Text="LAST SCAN" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
+                                        <TextBlock Text="LAST SCAN" Style="{StaticResource MetaLabel}"/>
                                         <TextBlock Text="{Binding LastScan}" FontSize="13" FontWeight="SemiBold" Margin="0,6,0,0"/>
                                         <TextBlock Text="local time" Foreground="{StaticResource TextSecondary}" FontSize="9" Margin="0,2,0,0"/>
                                     </StackPanel>
@@ -173,157 +316,194 @@
                             </Grid>
                         </Border>
 
-                        <Grid Grid.Row="2" Margin="0,30,0,0">
+                        <Grid Grid.Row="2" Margin="0,28,0,0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="34"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="DRIVER STATUS" Foreground="{StaticResource TextMuted}" FontSize="9" FontWeight="Bold"/>
-                                <Border Height="1" Background="{StaticResource Border}" Margin="0,9,0,14"/>
+
+                            <Border BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
                                 <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding ConfirmedUpgradeCount}" FontSize="24" FontWeight="SemiBold"/>
-                                        <TextBlock Text="New versions" Foreground="{StaticResource TextSecondary}" FontSize="10"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="{Binding PackageRefreshCount}" FontSize="24" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Package refreshes" Foreground="{StaticResource TextSecondary}" FontSize="10"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="{Binding UpdateCount}" FontSize="24" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Total offers" Foreground="{StaticResource TextSecondary}" FontSize="10"/>
-                                    </StackPanel>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="DRIVER HEALTH" Foreground="{StaticResource TextMuted}" FontSize="9" FontWeight="Bold"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding UpdateCount}" FontSize="22" FontWeight="SemiBold"/>
+                                    </Grid>
+                                    <TextBlock Grid.Row="1" Text="{Binding DriverOverviewText}" Foreground="{StaticResource TextSecondary}" FontSize="10.5" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                    <Grid Grid.Row="2" Margin="0,13,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel><TextBlock Text="{Binding ConfirmedUpgradeCount}" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="new versions" Foreground="{StaticResource TextMuted}" FontSize="8.5"/></StackPanel>
+                                        <StackPanel Grid.Column="1"><TextBlock Text="{Binding PackageRefreshCount}" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="refreshes" Foreground="{StaticResource TextMuted}" FontSize="8.5"/></StackPanel>
+                                        <Button Grid.Column="2" Style="{StaticResource LinkButton}" Click="OpenDrivers_Click" HorizontalAlignment="Right" VerticalAlignment="Bottom"><TextBlock Text="Review drivers  →"/></Button>
+                                    </Grid>
                                 </Grid>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="HARDWARE INVENTORY" Foreground="{StaticResource TextMuted}" FontSize="9" FontWeight="Bold"/>
-                                <Border Height="1" Background="{StaticResource Border}" Margin="0,9,0,14"/>
-                                <TextBlock Text="{Binding HardwareCount}" FontSize="24" FontWeight="SemiBold"/>
-                                <TextBlock Text="Detected driver-backed devices" Foreground="{StaticResource TextSecondary}" FontSize="10"/>
-                                <WrapPanel Margin="0,14,0,0">
-                                    <TextBlock Text="Network " Foreground="{StaticResource TextMuted}" FontSize="9"/>
-                                    <TextBlock Text="{Binding NetworkDeviceCount}" FontSize="9" FontWeight="SemiBold" Margin="0,0,14,0"/>
-                                    <TextBlock Text="Display " Foreground="{StaticResource TextMuted}" FontSize="9"/>
-                                    <TextBlock Text="{Binding DisplayDeviceCount}" FontSize="9" FontWeight="SemiBold" Margin="0,0,14,0"/>
-                                    <TextBlock Text="Audio " Foreground="{StaticResource TextMuted}" FontSize="9"/>
-                                    <TextBlock Text="{Binding AudioDeviceCount}" FontSize="9" FontWeight="SemiBold" Margin="0,0,14,0"/>
-                                    <TextBlock Text="Bluetooth " Foreground="{StaticResource TextMuted}" FontSize="9"/>
-                                    <TextBlock Text="{Binding BluetoothDeviceCount}" FontSize="9" FontWeight="SemiBold"/>
-                                </WrapPanel>
-                            </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="HARDWARE INVENTORY" Foreground="{StaticResource TextMuted}" FontSize="9" FontWeight="Bold"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding HardwareCount}" FontSize="22" FontWeight="SemiBold"/>
+                                    </Grid>
+                                    <TextBlock Grid.Row="1" Text="{Binding HardwareOverviewText}" Foreground="{StaticResource TextSecondary}" FontSize="10.5" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                    <Grid Grid.Row="2" Margin="0,13,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <WrapPanel>
+                                            <TextBlock Text="Network " Foreground="{StaticResource TextMuted}" FontSize="8.5"/><TextBlock Text="{Binding NetworkDeviceCount}" FontSize="8.5" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Display " Foreground="{StaticResource TextMuted}" FontSize="8.5"/><TextBlock Text="{Binding DisplayDeviceCount}" FontSize="8.5" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Audio " Foreground="{StaticResource TextMuted}" FontSize="8.5"/><TextBlock Text="{Binding AudioDeviceCount}" FontSize="8.5" FontWeight="SemiBold"/>
+                                        </WrapPanel>
+                                        <Button Grid.Column="1" Style="{StaticResource LinkButton}" Click="OpenHardware_Click" HorizontalAlignment="Right"><TextBlock Text="Browse hardware  →"/></Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
                         </Grid>
 
-                        <Border Grid.Row="3" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0"
-                                Margin="0,30,0,0" Padding="0,14,0,0" VerticalAlignment="Bottom">
+                        <Border Grid.Row="4" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="0,13,0,0" VerticalAlignment="Bottom">
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="SOURCE &amp; PRIVACY" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
-                                    <TextBlock Text="Microsoft Windows Update only · no ads · no telemetry · no third-party driver catalog"
-                                               Foreground="{StaticResource TextSecondary}" FontSize="9.5" Margin="0,4,0,0"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="1" Text="NODUS Driver · preview" Foreground="{StaticResource TextMuted}"
-                                           FontSize="9" VerticalAlignment="Bottom"/>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Microsoft Windows Update only · no ads · no telemetry · no third-party driver catalog" Foreground="{StaticResource TextMuted}" FontSize="9"/>
+                                <TextBlock Grid.Column="1" Text="NODUS Driver · v0.2.0 preview" Foreground="{StaticResource TextMuted}" FontSize="9"/>
                             </Grid>
                         </Border>
                     </Grid>
                 </TabItem>
 
+                <!-- DRIVERS -->
                 <TabItem Header="Drivers" Style="{StaticResource NavTabItem}">
-                    <Grid Margin="38,30,38,28">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <Grid Margin="36,27,36,24">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
                         <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="DRIVERS" Foreground="{StaticResource Accent}" FontSize="9" FontWeight="Bold"/>
-                                <TextBlock Text="Review before you install" FontSize="27" FontWeight="SemiBold" Margin="0,7,0,0"/>
-                                <TextBlock Text="Only packages reported as compatible by Microsoft Windows Update are shown here."
-                                           Foreground="{StaticResource TextSecondary}" FontSize="11.5" Margin="0,7,0,0"/>
+                                <TextBlock Text="DRIVERS" Style="{StaticResource SectionLabel}"/>
+                                <TextBlock Text="Review before you install" FontSize="28" FontWeight="SemiBold" Margin="0,7,0,0"/>
+                                <TextBlock Text="Select a package on the left to inspect exactly what Windows Update reported." Foreground="{StaticResource TextSecondary}" FontSize="11" Margin="0,7,0,0"/>
                             </StackPanel>
                             <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" Command="{Binding ScanCommand}" VerticalAlignment="Top">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="↻" FontSize="13" Margin="0,0,7,0"/>
-                                    <TextBlock Text="Scan again"/>
-                                </StackPanel>
+                                <StackPanel Orientation="Horizontal"><TextBlock Text="↻" FontSize="13" Margin="0,0,7,0"/><TextBlock Text="Scan again"/></StackPanel>
                             </Button>
                         </Grid>
 
-                        <Grid Grid.Row="1" Margin="0,26,0,11">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                        <Grid Grid.Row="1" Margin="0,23,0,10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Available packages" FontSize="13" FontWeight="SemiBold"/>
-                                <TextBlock Text="  /  " Foreground="{StaticResource TextMuted}" FontSize="11"/>
-                                <TextBlock Text="{Binding PackageCountText}" Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text="Available packages" FontSize="12.5" FontWeight="SemiBold"/>
+                                <TextBlock Text="  /  " Foreground="{StaticResource TextMuted}"/>
+                                <TextBlock Text="{Binding PackageCountText}" Foreground="{StaticResource TextSecondary}" FontSize="10.5" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="Select packages to install" Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Click a row for details" Foreground="{StaticResource TextMuted}" FontSize="9.5"/>
                         </Grid>
 
-                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding Updates}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{StaticResource Surface}" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0"
-                                                Padding="12,14" Margin="0,0,0,0">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="34"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <CheckBox Style="{StaticResource SelectionCheckBox}" IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
-                                                <StackPanel Grid.Column="1">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold"/>
-                                                        <TextBlock Text="  ·  " Foreground="{StaticResource TextMuted}"/>
-                                                        <TextBlock Text="{Binding OfferLabel}" Foreground="{StaticResource Accent}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                    <TextBlock Text="{Binding VersionSummary}" Foreground="{StaticResource TextSecondary}" FontSize="10" Margin="0,5,0,0"/>
-                                                    <TextBlock Text="{Binding MetadataSummary}" Foreground="{StaticResource TextMuted}" FontSize="9.5" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0,0,0">
-                                                    <TextBlock Text="DRIVER DATE" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold" HorizontalAlignment="Right"/>
-                                                    <TextBlock Text="{Binding DriverVersionDate}" FontSize="10.5" Margin="0,5,0,0" HorizontalAlignment="Right"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                        <Grid Grid.Row="2">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers><DataTrigger Binding="{Binding HasUpdates}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.35*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="0.9*"/></Grid.ColumnDefinitions>
 
-                        <Border Grid.Row="3" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,12,0,0">
+                            <ListBox ItemsSource="{Binding Updates}" SelectedItem="{Binding SelectedUpdate}" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DriverListItem}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="14,13">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <CheckBox Style="{StaticResource SelectionCheckBox}" IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="1">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12.5" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="  ·  " Foreground="{StaticResource TextMuted}"/>
+                                                    <TextBlock Text="{Binding OfferLabel}" FontSize="8.5" FontWeight="Bold" VerticalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+                                                                <Style.Triggers><DataTrigger Binding="{Binding OfferKind}" Value="Package"><Setter Property="Foreground" Value="{StaticResource Warning}"/></DataTrigger></Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding VersionSummary}" Foreground="{StaticResource TextSecondary}" FontSize="9.5" Margin="0,5,0,0"/>
+                                                <TextBlock Text="{Binding MetadataSummary}" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,0,0">
+                                                <TextBlock Text="DATE" Style="{StaticResource MetaLabel}" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding DriverVersionDate}" FontSize="9.5" Margin="0,4,0,0" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Border Grid.Column="2" Background="{StaticResource Surface}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="9" Padding="20">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel DataContext="{Binding SelectedUpdate}">
+                                        <TextBlock Text="DRIVER DETAILS" Foreground="{StaticResource TextMuted}" FontSize="8.5" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding DetailStatus}" Foreground="{StaticResource TextSecondary}" FontSize="9.5" Margin="0,7,0,0" TextWrapping="Wrap"/>
+
+                                        <Border Height="1" Background="{StaticResource Border}" Margin="0,17,0,16"/>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="INSTALLED" Style="{StaticResource MetaLabel}"/>
+                                                <TextBlock Text="{Binding InstalledVersionDisplay}" FontSize="13" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="AVAILABLE" Style="{StaticResource MetaLabel}"/>
+                                                <TextBlock Text="{Binding AvailableVersionDisplay}" FontSize="13" FontWeight="SemiBold" Margin="0,5,0,0" Foreground="{StaticResource Accent}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{StaticResource Border}" Margin="0,17,0,14"/>
+
+                                        <TextBlock Text="PROVIDER" Style="{StaticResource MetaLabel}"/>
+                                        <TextBlock Text="{Binding Manufacturer}" FontSize="10.5" Margin="0,4,0,12"/>
+                                        <TextBlock Text="CATEGORY" Style="{StaticResource MetaLabel}"/>
+                                        <TextBlock Text="{Binding CategoryLabel}" FontSize="10.5" Margin="0,4,0,12"/>
+                                        <TextBlock Text="PACKAGE SIZE" Style="{StaticResource MetaLabel}"/>
+                                        <TextBlock Text="{Binding Size}" FontSize="10.5" Margin="0,4,0,12"/>
+                                        <TextBlock Text="DRIVER DATE" Style="{StaticResource MetaLabel}"/>
+                                        <TextBlock Text="{Binding DriverVersionDate}" FontSize="10.5" Margin="0,4,0,12"/>
+                                        <TextBlock Text="SOURCE" Style="{StaticResource MetaLabel}"/>
+                                        <TextBlock Text="{Binding SourceLabel}" FontSize="10.5" Margin="0,4,0,12"/>
+
+                                        <TextBlock Text="WINDOWS UPDATE PACKAGE" Style="{StaticResource MetaLabel}" Margin="0,3,0,0"/>
+                                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,5,0,0" TextWrapping="Wrap"/>
+
+                                        <CheckBox Style="{StaticResource SelectionCheckBox}" IsChecked="{Binding IsSelected}" Margin="0,18,0,0" HorizontalAlignment="Left" ToolTip="Include this package in the next update"/>
+                                        <TextBlock Text="Included in selected updates" Foreground="{StaticResource TextSecondary}" FontSize="9.5" Margin="27,-19,0,0"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+
+                        <Grid Grid.Row="2">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers><DataTrigger Binding="{Binding HasUpdates}" Value="False"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
+                                <TextBlock Text="✓" Foreground="{StaticResource Accent}" FontSize="34" HorizontalAlignment="Center"/>
+                                <TextBlock Text="No driver packages need attention" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                <TextBlock Text="Microsoft Windows Update did not report a compatible driver package that needs review right now." Foreground="{StaticResource TextSecondary}" FontSize="10.5" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Row="3" Background="#091314" BorderBrush="{StaticResource Border}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0" Margin="0,14,0,-24" Padding="16,13">
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding StatusDetail}" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,3,0,0"/>
+                                    <TextBlock Text="{Binding SelectionSummaryText}" FontSize="10.5" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Only selected packages will be passed to Windows Update for installation." Foreground="{StaticResource TextMuted}" FontSize="8.8" Margin="0,3,0,0"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Command="{Binding InstallCommand}"
-                                        MinWidth="170" Padding="20,11">
+                                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Command="{Binding InstallCommand}" MinWidth="172" Padding="18,10">
                                     <TextBlock Text="{Binding InstallButtonText}" FontWeight="SemiBold"/>
                                 </Button>
                             </Grid>
@@ -331,57 +511,70 @@
                     </Grid>
                 </TabItem>
 
+                <!-- HARDWARE -->
                 <TabItem Header="Hardware" Style="{StaticResource NavTabItem}">
-                    <Grid Margin="38,30,38,28">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <Grid Margin="36,27,36,25">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
                         <StackPanel>
-                            <TextBlock Text="HARDWARE" Foreground="{StaticResource Accent}" FontSize="9" FontWeight="Bold"/>
-                            <TextBlock Text="What NODUS can see" FontSize="27" FontWeight="SemiBold" Margin="0,7,0,0"/>
-                            <TextBlock Text="Read-only inventory from Windows Plug and Play driver data."
-                                       Foreground="{StaticResource TextSecondary}" FontSize="11.5" Margin="0,7,0,0"/>
+                            <TextBlock Text="HARDWARE" Style="{StaticResource SectionLabel}"/>
+                            <TextBlock Text="Hardware inventory" FontSize="28" FontWeight="SemiBold" Margin="0,7,0,0"/>
+                            <TextBlock Text="Search and filter the driver-backed devices Windows exposes to NODUS. Nothing on this screen changes the system." Foreground="{StaticResource TextSecondary}" FontSize="11" Margin="0,7,0,0"/>
                         </StackPanel>
-                        <Grid Grid.Row="1" Margin="0,24,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding HardwareCountText}" FontSize="13" FontWeight="SemiBold"/>
-                            <TextBlock Grid.Column="1" Text="Device · manufacturer · category · driver version"
-                                       Foreground="{StaticResource TextMuted}" FontSize="9.5"/>
+
+                        <Grid Grid.Row="1" Margin="0,23,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="DISPLAY" Style="{StaticResource MetaLabel}"/><TextBlock Text="{Binding DisplayDeviceCount}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="1"><TextBlock Text="NETWORK" Style="{StaticResource MetaLabel}"/><TextBlock Text="{Binding NetworkDeviceCount}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="AUDIO" Style="{StaticResource MetaLabel}"/><TextBlock Text="{Binding AudioDeviceCount}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="3"><TextBlock Text="BLUETOOTH" Style="{StaticResource MetaLabel}"/><TextBlock Text="{Binding BluetoothDeviceCount}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/></StackPanel>
                         </Grid>
-                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding HardwareDevices}">
-                                <ItemsControl.ItemTemplate>
+
+                        <Grid Grid.Row="2" Margin="0,20,0,12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="190"/></Grid.ColumnDefinitions>
+                            <Grid>
+                                <TextBox Style="{StaticResource SearchBox}" Text="{Binding HardwareSearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Search by device, manufacturer, category, or driver version"/>
+                                <TextBlock Text="Search devices..." Foreground="{StaticResource TextMuted}" FontSize="10.5" Margin="13,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers><DataTrigger Binding="{Binding HardwareSearchText}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                            <ComboBox Grid.Column="2" Style="{StaticResource FilterCombo}" ItemsSource="{Binding HardwareCategories}" SelectedItem="{Binding SelectedHardwareCategory}"/>
+                        </Grid>
+
+                        <Grid Grid.Row="3">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding HardwareResultText}" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Device · manufacturer · category · driver version" Foreground="{StaticResource TextMuted}" FontSize="8.8"/>
+                            </Grid>
+                            <ListBox Grid.Row="1" ItemsSource="{Binding HardwareView}" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource HardwareListItem}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="8,12">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="150"/>
-                                                    <ColumnDefinition Width="160"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding DeviceName}" FontSize="12.5" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding Manufacturer}" Foreground="{StaticResource TextMuted}" FontSize="9.5" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="CATEGORY" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
-                                                    <TextBlock Text="{Binding Category}" Foreground="{StaticResource TextSecondary}" FontSize="10" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                                    <TextBlock Text="DRIVER VERSION" Foreground="{StaticResource TextMuted}" FontSize="8" FontWeight="Bold"/>
-                                                    <TextBlock Text="{Binding DriverVersion}" FontSize="10" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
+                                        <Grid Margin="9,11">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="140"/><ColumnDefinition Width="155"/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DeviceName}" FontSize="11.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Manufacturer}" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="CATEGORY" Style="{StaticResource MetaLabel}"/>
+                                                <TextBlock Text="{Binding Category}" Foreground="{StaticResource TextSecondary}" FontSize="9.5" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock Text="DRIVER VERSION" Style="{StaticResource MetaLabel}"/>
+                                                <TextBlock Text="{Binding DriverVersion}" FontSize="9.5" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
                     </Grid>
                 </TabItem>
             </TabControl>

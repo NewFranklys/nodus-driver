@@ -35,8 +35,25 @@ public static class ElevatedInstallRunner
 
             var log = new LogService();
             log.Info($"Elevated installer started for {request.Updates.Count} driver update(s).");
-            var service = new WindowsUpdateService(log);
-            result = await service.InstallAsync(request.Updates);
+
+            var recovery = new RecoveryService(log);
+            var snapshot = await recovery.CreateProtectionSnapshotAsync(request.PreviousDrivers ?? [], request.Updates);
+            if (!snapshot.HasProtection)
+            {
+                log.Info("Installation stopped because recovery protection could not be created.");
+                result = new InstallSummary(
+                    false,
+                    false,
+                    false,
+                    -2,
+                    "NODUS stopped before changing drivers because it could not create a restore point or back up a matched OEM driver package. Open Recovery for details.");
+            }
+            else
+            {
+                var service = new WindowsUpdateService(log);
+                result = await service.InstallAsync(request.Updates);
+                await recovery.CompleteSnapshotAsync(snapshot, result);
+            }
         }
         catch (Exception ex)
         {

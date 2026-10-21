@@ -1,5 +1,5 @@
 #define MyAppName "NODUS Driver"
-#define MyAppVersion "0.1.8"
+#define MyAppVersion "0.1.9"
 #define MyAppPublisher "Franklys"
 #define MyAppExeName "NodusDriver.exe"
 
@@ -19,6 +19,7 @@ WizardStyle=modern
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+SetupIconFile=..\src\NodusDriver\Assets\NodusDriver.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Files]

@@ -26,18 +26,14 @@ public sealed class HardwareDeviceItemViewModel
         return value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase).ToLowerInvariant() switch
         {
             "networking" or "net" => "Network",
-            "securitydevices" or "security" => "Security",
-            "otherhardware" or "system" => "System",
-            "display" => "Display",
-            "media" => "Audio / media",
+            "display" or "monitor" => "Display",
+            "media" or "audioendpoint" or "sound" => "Audio",
             "bluetooth" => "Bluetooth",
-            "hidclass" => "Input",
-            "keyboard" => "Input",
-            "mouse" => "Input",
-            "usb" => "USB",
-            "ports" => "Ports",
-            "processor" => "Processor",
-            _ => value
+            "hidclass" or "keyboard" or "mouse" => "Input",
+            "usb" or "usbdevice" => "USB",
+            "securitydevices" or "security" or "otherhardware" or "system" or "softwarecomponent" or
+            "computer" or "firmware" or "processor" or "ports" => "System",
+            _ => "Other"
         };
     }
 }

@@ -24,14 +24,17 @@ public sealed partial class DriverUpdateItemViewModel : ObservableObject
             : InstalledDriver?.DeviceName ?? Update.Title;
 
     public string Title => Update.Title;
-    public string Manufacturer => Update.Manufacturer;
+    public string Manufacturer => string.IsNullOrWhiteSpace(Update.Manufacturer) ? "Not reported" : Update.Manufacturer;
     public string Model => Update.Model;
     public string DriverClass => Update.DriverClass;
     public string CategoryLabel => FriendlyCategory(Update.DriverClass);
-    public string DriverVersionDate => Update.DriverVersionDate;
+    public string DriverVersionDate => string.IsNullOrWhiteSpace(Update.DriverVersionDate) ? "Not reported" : Update.DriverVersionDate;
     public string CurrentVersion => InstalledDriver?.DriverVersion ?? "Not identified";
     public string? OfferedVersion => TryExtractVersion(Update.Title);
     public string Size => Update.MaxDownloadSize <= 0 ? "Size unavailable" : FormatBytes(Update.MaxDownloadSize);
+    public string InstalledVersionDisplay => HasInstalledMatch ? CurrentVersion : "Not identified";
+    public string AvailableVersionDisplay => HasOfferedVersion ? OfferedVersion! : "Not reported";
+    public string SourceLabel => "Microsoft Windows Update";
 
     public bool HasInstalledMatch => InstalledDriver is not null;
     public bool HasOfferedVersion => !string.IsNullOrWhiteSpace(OfferedVersion);
@@ -53,6 +56,14 @@ public sealed partial class DriverUpdateItemViewModel : ObservableObject
         "Upgrade" => "NEW VERSION",
         "Package" => "PACKAGE REFRESH",
         _ => "WINDOWS UPDATE"
+    };
+
+    public string DetailStatus => OfferKind switch
+    {
+        "Upgrade" => "Windows Update reports a newer version for the matched installed device.",
+        "Package" => "Windows Update reports an applicable package with the same visible driver version.",
+        _ when HasOfferedVersion => "Windows Update reports an applicable version, but NODUS could not confidently match the currently installed version.",
+        _ => "Windows Update reports a compatible package without a target version in the offer title."
     };
 
     public string VersionSummary
@@ -96,13 +107,13 @@ public sealed partial class DriverUpdateItemViewModel : ObservableObject
         return value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase).ToLowerInvariant() switch
         {
             "networking" or "net" => "Network",
-            "securitydevices" or "security" => "Security",
-            "otherhardware" or "system" => "System component",
-            "display" => "Display",
-            "media" => "Audio / media",
+            "securitydevices" or "security" => "System",
+            "otherhardware" or "system" or "softwarecomponent" => "System",
+            "display" or "monitor" => "Display",
+            "media" or "audioendpoint" => "Audio",
             "bluetooth" => "Bluetooth",
-            "hidclass" => "Input device",
-            "usb" => "USB",
+            "hidclass" or "keyboard" or "mouse" => "Input",
+            "usb" or "usbdevice" => "USB",
             _ => value
         };
     }

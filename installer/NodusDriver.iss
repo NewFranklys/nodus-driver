@@ -1,5 +1,5 @@
 #define MyAppName "NODUS Driver"
-#define MyAppVersion "0.2.1"
+#define MyAppVersion "0.3.0"
 #define MyAppPublisher "Franklys"
 #define MyAppExeName "NodusDriver.exe"
 

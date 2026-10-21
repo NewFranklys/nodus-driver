@@ -57,7 +57,7 @@ public partial class RecoveryView : UserControl
         OpenFolder(path);
     }
 
-    private static void OpenSystemRestore_Click(object sender, RoutedEventArgs e)
+    private void OpenSystemRestore_Click(object sender, RoutedEventArgs e)
     {
         try
         {

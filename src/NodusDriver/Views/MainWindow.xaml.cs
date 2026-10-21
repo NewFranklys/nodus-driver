@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using NodusDriver.ViewModels;
 
@@ -25,6 +26,12 @@ public partial class MainWindow : Window
             WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         else
             DragMove();
+    }
+
+    private void HardwareFilter_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string category } && DataContext is MainViewModel vm)
+            vm.SelectedHardwareCategory = category;
     }
 
     private void OpenDrivers_Click(object sender, RoutedEventArgs e) => MainTabs.SelectedIndex = 1;

@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Data;
 using NodusDriver.Infrastructure;
 using NodusDriver.Models;
 using NodusDriver.Services;
@@ -20,6 +22,10 @@ public sealed class MainViewModel : ObservableObject
     private string _lastScan = "Not yet";
     private int _installedDriverCount;
     private bool _rebootRequired;
+    private int _scanStage;
+    private DriverUpdateItemViewModel? _selectedUpdate;
+    private string _hardwareSearchText = string.Empty;
+    private string _selectedHardwareCategory = "All";
 
     public MainViewModel()
     {
@@ -29,13 +35,22 @@ public sealed class MainViewModel : ObservableObject
         _elevatedInstaller = new ElevatedInstallLauncher(_log);
         ScanCommand = new AsyncCommand(ScanAsync, () => !IsBusy);
         InstallCommand = new AsyncCommand(InstallSelectedAsync, () => !IsBusy && Updates.Any(x => x.IsSelected));
+
+        HardwareView = CollectionViewSource.GetDefaultView(HardwareDevices);
+        HardwareView.Filter = FilterHardware;
     }
 
     public ObservableCollection<DriverUpdateItemViewModel> Updates { get; } = [];
     public ObservableCollection<HardwareDeviceItemViewModel> HardwareDevices { get; } = [];
+    public ICollectionView HardwareView { get; }
     public AsyncCommand ScanCommand { get; }
     public AsyncCommand InstallCommand { get; }
     public string LogPath => _log.LogPath;
+
+    public IReadOnlyList<string> HardwareCategories { get; } =
+    [
+        "All", "Display", "Network", "Audio", "Bluetooth", "System", "Input", "USB", "Other"
+    ];
 
     public bool IsBusy
     {
@@ -47,6 +62,7 @@ public sealed class MainViewModel : ObservableObject
                 ScanCommand.RaiseCanExecuteChanged();
                 InstallCommand.RaiseCanExecuteChanged();
                 OnPropertyChanged(nameof(IsIdle));
+                RefreshOverviewProperties();
             }
         }
     }
@@ -56,7 +72,11 @@ public sealed class MainViewModel : ObservableObject
     public bool IsScanning
     {
         get => _isScanning;
-        private set => SetProperty(ref _isScanning, value);
+        private set
+        {
+            if (SetProperty(ref _isScanning, value))
+                RefreshOverviewProperties();
+        }
     }
 
     public bool IsInstalling
@@ -68,14 +88,79 @@ public sealed class MainViewModel : ObservableObject
     public bool HasScanned
     {
         get => _hasScanned;
-        private set => SetProperty(ref _hasScanned, value);
+        private set
+        {
+            if (SetProperty(ref _hasScanned, value))
+                RefreshOverviewProperties();
+        }
     }
 
-    public string Status { get => _status; private set => SetProperty(ref _status, value); }
+    public string Status
+    {
+        get => _status;
+        private set
+        {
+            if (SetProperty(ref _status, value))
+                RefreshOverviewProperties();
+        }
+    }
+
     public string StatusDetail { get => _statusDetail; private set => SetProperty(ref _statusDetail, value); }
     public string LastScan { get => _lastScan; private set => SetProperty(ref _lastScan, value); }
     public int InstalledDriverCount { get => _installedDriverCount; private set => SetProperty(ref _installedDriverCount, value); }
     public bool RebootRequired { get => _rebootRequired; private set => SetProperty(ref _rebootRequired, value); }
+
+    public int ScanStage
+    {
+        get => _scanStage;
+        private set
+        {
+            if (SetProperty(ref _scanStage, value))
+                OnPropertyChanged(nameof(ScanStageText));
+        }
+    }
+
+    public string ScanStageText => ScanStage switch
+    {
+        1 => "Step 1 of 3  ·  Detecting hardware",
+        2 => "Step 2 of 3  ·  Checking Windows Update",
+        3 => "Step 3 of 3  ·  Comparing packages",
+        _ => string.Empty
+    };
+
+    public DriverUpdateItemViewModel? SelectedUpdate
+    {
+        get => _selectedUpdate;
+        set => SetProperty(ref _selectedUpdate, value);
+    }
+
+    public string HardwareSearchText
+    {
+        get => _hardwareSearchText;
+        set
+        {
+            if (SetProperty(ref _hardwareSearchText, value))
+            {
+                HardwareView.Refresh();
+                OnPropertyChanged(nameof(VisibleHardwareCount));
+                OnPropertyChanged(nameof(HardwareResultText));
+            }
+        }
+    }
+
+    public string SelectedHardwareCategory
+    {
+        get => _selectedHardwareCategory;
+        set
+        {
+            if (SetProperty(ref _selectedHardwareCategory, value))
+            {
+                HardwareView.Refresh();
+                OnPropertyChanged(nameof(VisibleHardwareCount));
+                OnPropertyChanged(nameof(HardwareResultText));
+            }
+        }
+    }
 
     public int UpdateCount => Updates.Count;
     public int ConfirmedUpgradeCount => Updates.Count(x => x.OfferKind == "Upgrade");
@@ -85,6 +170,13 @@ public sealed class MainViewModel : ObservableObject
     public bool HasUpdates => Updates.Count > 0;
     public int SelectedCount => Updates.Count(x => x.IsSelected);
     public string PackageCountText => UpdateCount == 1 ? "1 package" : $"{UpdateCount} packages";
+    public string SelectionSummaryText => SelectedCount switch
+    {
+        0 => "No packages selected",
+        1 => "1 package selected",
+        _ => $"{SelectedCount} packages selected"
+    };
+
     public string InstallButtonText => SelectedCount switch
     {
         0 => "Select a driver",
@@ -95,9 +187,49 @@ public sealed class MainViewModel : ObservableObject
     public int HardwareCount => HardwareDevices.Count;
     public int NetworkDeviceCount => HardwareDevices.Count(x => x.Category == "Network");
     public int DisplayDeviceCount => HardwareDevices.Count(x => x.Category == "Display");
-    public int AudioDeviceCount => HardwareDevices.Count(x => x.Category == "Audio / media");
+    public int AudioDeviceCount => HardwareDevices.Count(x => x.Category == "Audio");
     public int BluetoothDeviceCount => HardwareDevices.Count(x => x.Category == "Bluetooth");
+    public int VisibleHardwareCount => HardwareDevices.Count(HardwareMatches);
     public string HardwareCountText => HardwareCount == 1 ? "1 detected device" : $"{HardwareCount} detected devices";
+    public string HardwareResultText => VisibleHardwareCount == HardwareCount
+        ? HardwareCountText
+        : $"{VisibleHardwareCount} of {HardwareCount} devices";
+
+    public string OverviewHeadline
+    {
+        get
+        {
+            if (IsScanning) return "Scanning this PC";
+            if (!HasScanned) return "Ready when you are";
+            if (Status.Contains("failed", StringComparison.OrdinalIgnoreCase)) return "Scan needs attention";
+            if (UpdateCount == 0) return "Drivers look current";
+            if (ConfirmedUpgradeCount == 1) return "1 newer driver version found";
+            if (ConfirmedUpgradeCount > 1) return $"{ConfirmedUpgradeCount} newer driver versions found";
+            return UpdateCount == 1 ? "1 driver package needs review" : $"{UpdateCount} driver packages need review";
+        }
+    }
+
+    public string OverviewSummary
+    {
+        get
+        {
+            if (IsScanning) return StatusDetail;
+            if (!HasScanned) return "Run a scan to compare installed drivers with compatible packages from Microsoft Windows Update.";
+            if (UpdateCount == 0) return $"No compatible driver packages need attention. {HardwareCount} devices are visible to NODUS.";
+            return $"{UpdateCount} Windows Update package{(UpdateCount == 1 ? "" : "s")} available across {HardwareCount} detected devices. Review before installing.";
+        }
+    }
+
+    public string DriverOverviewText => UpdateCount switch
+    {
+        0 => "No driver packages currently need attention.",
+        1 => "1 package is ready for review before installation.",
+        _ => $"{UpdateCount} packages are ready for review before installation."
+    };
+
+    public string HardwareOverviewText => HardwareCount == 0
+        ? "Hardware inventory will appear after the first scan."
+        : $"{HardwareCount} driver-backed devices detected across Windows Plug and Play.";
 
     private async Task ScanAsync()
     {
@@ -106,6 +238,7 @@ public sealed class MainViewModel : ObservableObject
         IsInstalling = false;
         RebootRequired = false;
         HasScanned = false;
+        ScanStage = 1;
         Status = "Detecting hardware";
         StatusDetail = "Reading Plug and Play devices and the drivers currently installed on this PC.";
 
@@ -115,13 +248,16 @@ public sealed class MainViewModel : ObservableObject
             InstalledDriverCount = installedDrivers.Count;
             PopulateHardwareInventory(installedDrivers);
 
+            ScanStage = 2;
             Status = "Checking Windows Update";
             StatusDetail = "Asking Microsoft Windows Update for driver packages that apply to this hardware.";
             var updateResults = await _windowsUpdate.SearchDriverUpdatesAsync();
 
+            ScanStage = 3;
             Status = "Comparing driver packages";
             StatusDetail = "Matching Windows Update offers against the drivers already installed on this PC.";
             Updates.Clear();
+            SelectedUpdate = null;
 
             foreach (var update in updateResults)
             {
@@ -133,12 +269,14 @@ public sealed class MainViewModel : ObservableObject
                     {
                         InstallCommand.RaiseCanExecuteChanged();
                         OnPropertyChanged(nameof(SelectedCount));
+                        OnPropertyChanged(nameof(SelectionSummaryText));
                         OnPropertyChanged(nameof(InstallButtonText));
                     }
                 };
                 Updates.Add(item);
             }
 
+            SelectedUpdate = Updates.FirstOrDefault();
             HasScanned = true;
             LastScan = DateTime.Now.ToString("HH:mm");
             RefreshUpdateProperties();
@@ -163,6 +301,7 @@ public sealed class MainViewModel : ObservableObject
         }
         finally
         {
+            ScanStage = 0;
             IsScanning = false;
             IsBusy = false;
         }
@@ -261,12 +400,34 @@ public sealed class MainViewModel : ObservableObject
             HardwareDevices.Add(new HardwareDeviceItemViewModel(driver));
         }
 
+        HardwareView.Refresh();
         OnPropertyChanged(nameof(HardwareCount));
         OnPropertyChanged(nameof(NetworkDeviceCount));
         OnPropertyChanged(nameof(DisplayDeviceCount));
         OnPropertyChanged(nameof(AudioDeviceCount));
         OnPropertyChanged(nameof(BluetoothDeviceCount));
+        OnPropertyChanged(nameof(VisibleHardwareCount));
         OnPropertyChanged(nameof(HardwareCountText));
+        OnPropertyChanged(nameof(HardwareResultText));
+        RefreshOverviewProperties();
+    }
+
+    private bool FilterHardware(object item) => item is HardwareDeviceItemViewModel device && HardwareMatches(device);
+
+    private bool HardwareMatches(HardwareDeviceItemViewModel device)
+    {
+        if (!string.Equals(SelectedHardwareCategory, "All", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(device.Category, SelectedHardwareCategory, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(HardwareSearchText))
+            return true;
+
+        var term = HardwareSearchText.Trim();
+        return device.DeviceName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+               device.Manufacturer.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+               device.Category.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+               device.DriverVersion.Contains(term, StringComparison.OrdinalIgnoreCase);
     }
 
     private static InstalledDriver? FindBestInstalledMatch(DriverUpdate update, IReadOnlyList<InstalledDriver> installedDrivers)
@@ -326,7 +487,18 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasUpdates));
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(PackageCountText));
+        OnPropertyChanged(nameof(SelectionSummaryText));
         OnPropertyChanged(nameof(InstallButtonText));
+        OnPropertyChanged(nameof(DriverOverviewText));
+        RefreshOverviewProperties();
         InstallCommand.RaiseCanExecuteChanged();
+    }
+
+    private void RefreshOverviewProperties()
+    {
+        OnPropertyChanged(nameof(OverviewHeadline));
+        OnPropertyChanged(nameof(OverviewSummary));
+        OnPropertyChanged(nameof(DriverOverviewText));
+        OnPropertyChanged(nameof(HardwareOverviewText));
     }
 }

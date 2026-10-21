@@ -11,6 +11,7 @@ public sealed class HardwareDeviceItemViewModel
         DriverVersion = string.IsNullOrWhiteSpace(driver.DriverVersion) ? "Not reported" : driver.DriverVersion;
         RawClass = driver.DeviceClass ?? string.Empty;
         Category = FriendlyCategory(RawClass);
+        IsSystemDevice = IsSystemOrVirtual(DeviceName, RawClass, Category);
     }
 
     public string DeviceName { get; }
@@ -18,6 +19,7 @@ public sealed class HardwareDeviceItemViewModel
     public string DriverVersion { get; }
     public string RawClass { get; }
     public string Category { get; }
+    public bool IsSystemDevice { get; }
 
     private static string FriendlyCategory(string value)
     {
@@ -32,8 +34,34 @@ public sealed class HardwareDeviceItemViewModel
             "hidclass" or "keyboard" or "mouse" => "Input",
             "usb" or "usbdevice" => "USB",
             "securitydevices" or "security" or "otherhardware" or "system" or "softwarecomponent" or
-            "computer" or "firmware" or "processor" or "ports" => "System",
+            "computer" or "firmware" or "processor" or "ports" or "volume" or "volumesnapshot" => "System",
             _ => "Other"
         };
+    }
+
+    private static bool IsSystemOrVirtual(string deviceName, string rawClass, string category)
+    {
+        if (category == "System") return true;
+
+        var name = deviceName.ToLowerInvariant();
+        var className = rawClass.ToLowerInvariant();
+
+        if (className is "softwarecomponent" or "computer" or "firmware" or "processor" or "volume" or "volumesnapshot")
+            return true;
+
+        string[] systemNameFragments =
+        [
+            "wan miniport",
+            "virtual adapter",
+            "virtual network",
+            "enumerator",
+            "kernel",
+            "remote desktop",
+            "root print queue",
+            "generic software device",
+            "composite bus"
+        ];
+
+        return systemNameFragments.Any(name.Contains);
     }
 }

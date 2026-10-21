@@ -6,9 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\NodusDriver.ico</ApplicationIcon>
     <AssemblyName>NodusDriver</AssemblyName>
     <RootNamespace>NodusDriver</RootNamespace>
-    <Version>0.1.8</Version>
+    <Version>0.1.9</Version>
     <Authors>Franklys</Authors>
     <Description>Free and open-source Windows driver updater powered by Microsoft Windows Update.</Description>
     <PublishSingleFile>true</PublishSingleFile>
@@ -19,5 +20,10 @@
 
   <ItemGroup>
     <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\NodusLogoD2.png" />
+    <Resource Include="Assets\NodusMarkD2.png" />
   </ItemGroup>
 </Project>

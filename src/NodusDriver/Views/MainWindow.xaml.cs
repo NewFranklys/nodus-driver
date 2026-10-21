@@ -27,6 +27,8 @@ public partial class MainWindow : Window
             DragMove();
     }
 
+    private void OpenDrivers_Click(object sender, RoutedEventArgs e) => MainTabs.SelectedIndex = 1;
+    private void OpenHardware_Click(object sender, RoutedEventArgs e) => MainTabs.SelectedIndex = 2;
     private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 }

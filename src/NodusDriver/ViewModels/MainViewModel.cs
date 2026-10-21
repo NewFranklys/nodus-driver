@@ -62,8 +62,10 @@ public sealed class MainViewModel : ObservableObject
     public int InstalledDriverCount { get => _installedDriverCount; private set => SetProperty(ref _installedDriverCount, value); }
     public bool RebootRequired { get => _rebootRequired; private set => SetProperty(ref _rebootRequired, value); }
     public int UpdateCount => Updates.Count;
-    public int ConfirmedUpgradeCount => Updates.Count(x => x.OfferKind == "Upgrade");
-    public int PackageRefreshCount => Updates.Count(x => x.OfferKind == "Package");
+    public int ConfirmedUpgradeCount => Updates.Count(x => x.HasInstalledMatch && x.HasOfferedVersion && !x.IsSameVersion);
+    public int PackageRefreshCount => Updates.Count(x => x.IsSameVersion);
+    public int KnownTargetUnknownCurrentCount => Updates.Count(x => !x.HasInstalledMatch && x.HasOfferedVersion);
+    public int UnknownTargetCount => Updates.Count(x => !x.HasOfferedVersion);
     public bool HasUpdates => Updates.Count > 0;
     public int SelectedCount => Updates.Count(x => x.IsSelected);
     public string PackageCountText => UpdateCount == 1 ? "1 package" : $"{UpdateCount} packages";
@@ -138,17 +140,23 @@ public sealed class MainViewModel : ObservableObject
 
     private string BuildScanDetail()
     {
-        var confirmed = ConfirmedUpgradeCount;
-        var refreshes = PackageRefreshCount;
-        var other = UpdateCount - confirmed - refreshes;
-
         var parts = new List<string>();
-        if (confirmed > 0)
-            parts.Add(confirmed == 1 ? "1 newer driver version" : $"{confirmed} newer driver versions");
-        if (refreshes > 0)
-            parts.Add(refreshes == 1 ? "1 same-version package refresh" : $"{refreshes} same-version package refreshes");
-        if (other > 0)
-            parts.Add(other == 1 ? "1 compatible package with an unreported target version" : $"{other} compatible packages with unreported target versions");
+
+        if (ConfirmedUpgradeCount > 0)
+            parts.Add(ConfirmedUpgradeCount == 1 ? "1 confirmed newer version" : $"{ConfirmedUpgradeCount} confirmed newer versions");
+
+        if (PackageRefreshCount > 0)
+            parts.Add(PackageRefreshCount == 1 ? "1 same-version package refresh" : $"{PackageRefreshCount} same-version package refreshes");
+
+        if (KnownTargetUnknownCurrentCount > 0)
+            parts.Add(KnownTargetUnknownCurrentCount == 1
+                ? "1 package with a reported version whose current installed version could not be matched"
+                : $"{KnownTargetUnknownCurrentCount} packages with reported versions whose current installed versions could not be matched");
+
+        if (UnknownTargetCount > 0)
+            parts.Add(UnknownTargetCount == 1
+                ? "1 compatible package with no target version reported"
+                : $"{UnknownTargetCount} compatible packages with no target versions reported");
 
         return $"Windows Update reported {string.Join(", ", parts)}. Review the list before installing.";
     }
@@ -258,6 +266,8 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(UpdateCount));
         OnPropertyChanged(nameof(ConfirmedUpgradeCount));
         OnPropertyChanged(nameof(PackageRefreshCount));
+        OnPropertyChanged(nameof(KnownTargetUnknownCurrentCount));
+        OnPropertyChanged(nameof(UnknownTargetCount));
         OnPropertyChanged(nameof(HasUpdates));
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(PackageCountText));
